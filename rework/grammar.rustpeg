@@ -1,0 +1,149 @@
+use syntax::*;
+
+pub program -> Elem<'input> =
+    a:list<item> b:Ws
+    { node!("program", a, b) }
+
+item -> Elem<'input> =
+    use_item /
+    struct_item /
+    enum_item /
+    type_item
+
+use_item -> Elem<'input> =
+    a:opt<Pub> b:Use c:S<[^;]+> d:S<";">
+    { node!("use_item", a, b, c, d) }
+
+struct_item -> Elem<'input> =
+    a:list<attribute> b:opt<Pub> c:Struct d:Ident e:struct_body
+    { node!("struct_item", a, b, c, d, e) }
+
+struct_body -> Elem<'input> =
+    a:tuple_struct_body b:S<";">
+    { node!("struct_body", a, b) }
+    /
+    a:named_struct_body
+    { node!("struct_body", a) }
+
+tuple_struct_body -> Elem<'input> =
+    a:S<"("> b:opt<Pub> c:csep<type_name> d:S<")">
+    { node!("tuple_struct_body", a, b, c, d) }
+
+named_struct_body -> Elem<'input> =
+    a:S<"{"> b:csep<struct_field> c:S<"}">
+    { node!("named_struct_body", a, b, c) }
+
+struct_field -> Elem<'input> =
+    a:opt<Pub> b:Ident c:S<":"> d:type_name
+    { node!("struct_field", a, b, c, d) }
+
+type_name -> Elem<'input> =
+    a:Ident b:opt<type_arguments>
+    { node!("type_name", a, b) }
+
+type_arguments -> Elem<'input> =
+    a:S<"<"> b:csep<type_name> c:S<">">
+    { node!("type_arguments", a, b, c) }
+
+enum_item -> Elem<'input> =
+    a:list<attribute> b:opt<Pub> c:Enum d:Ident e:enum_body
+    { node!("enum_item", a, b, c, d, e) }
+
+enum_body -> Elem<'input> =
+    a:S<"{"> b:csep<enum_variant> c:S<"}">
+    { node!("enum_body", a, b, c) }
+
+enum_variant -> Elem<'input> =
+    a:Ident b:opt<enum_variant_body>
+    { node!("variant", a, b) }
+
+enum_variant_body -> Elem<'input> =
+    tuple_struct_body /
+    named_struct_body
+
+attribute -> Elem<'input> =
+     a:S<"#["> b:Ident c:opt<attribute_arguments> d:S<"]">
+     { node!("attribute", a, b, c, d) }
+
+attribute_arguments -> Elem<'input> =
+    a:S<"("> b:csep<Ident> c:S<")">
+    { node!("attribute_arguments", a, b, c) }
+
+type_item -> Elem<'input> =
+    a:opt<Pub> b:Type c:type_decl d:S<"="> e:type_name f:S<";">
+    { node!("type_item", a, b, c, d, e, f) }
+
+type_decl -> Elem<'input> =
+    a:Ident b:opt<type_parameters>
+    { node!("type_decl", a, b) }
+
+type_parameters -> Elem<'input> =
+    a:S<"<"> b:csep<type_parameter> c:S<">">
+    { node!("type_parameters", a, b, c) }
+
+type_parameter -> Elem<'input> =
+    a:Ident b:opt<type_bound>
+    { node!("type_parameter", a, b) }
+
+type_bound -> Elem<'input> =
+    a:S<":"> b:type_name
+    { node!("type_bound", a, b) }
+
+// Whitespace
+_ = ([ \t\n] / "//" [^\n]* "\n")*
+
+Ws -> Elem<'input> =
+    p:$(_)
+    { text(p, "") }
+
+// Symbols and punctuation: parens, brackets, comma, and such.
+S<ex> = p:$(_) t:$(ex) {
+    text(p, t)
+}
+
+// Keywords
+K<ex> = p:$(_) t:$(ex) ![a-zA-Z0-9_] {
+    text(p, t)
+}
+
+Enum -> Elem<'input> = K<"enum">
+Pub -> Elem<'input> = K<"pub">
+Struct -> Elem<'input> = K<"struct">
+Type -> Elem<'input> = K<"type">
+Use -> Elem<'input> = K<"use">
+
+// Identifiers
+Ident -> Elem<'input> =
+    p:$(_) t:$([a-zA-Z_] [a-zA-Z0-9_]*) 
+    { text(p, t) }
+
+// Comma-separated lists
+csep<ex> =
+    xs:cs_elem<ex>* x:cs_last<ex>? 
+    {
+        let mut xs = xs;
+        if let Some(x) = x { xs.push(x) }
+        node_vec("comma_list", xs)
+    }
+    
+cs_elem<ex> =
+    e:ex c:S<","> 
+    { node!("comma_elem", e, c) }
+
+cs_last<ex> =
+    e:ex
+    { node!("comma_elem", e) }
+
+// Non-separated lists
+list<ex> =
+    xs:list_elem<ex>*
+    { node_vec("list", xs) }
+
+list_elem<ex> =
+    e:ex
+    { node!("list_elem", e) }
+
+// Optional elements
+opt<ex> =
+    e:ex?
+    { e.unwrap_or_else(|| node!("empty")) }
