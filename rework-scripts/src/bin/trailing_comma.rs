@@ -13,14 +13,8 @@ fn main() {
         |e| {
             find(
                 e,
-                query!(.. (comma_list) ({:last} {:prefix ~ "\n"})),
-                &mut |e| {
-                    find(
-                        e,
-                        query!(comma_list {:last} [<2]),
-                        &mut |e| e.push(comma.clone()),
-                    )
-                },
+                query!(.. ({:last} {:prefix ~ "\n"}) comma_list {:last} [<2]),
+                &mut |e| e.push(comma.clone()),
             )
         },
     );
