@@ -10,6 +10,6 @@ pub mod parser {
 pub mod cmd;
 
 pub mod prelude {
-    pub use syntax::{walk, Elem};
+    pub use syntax::{text, find, walk, Elem};
     pub use syntax::Elem::*;
 }
