@@ -22,6 +22,9 @@ struct_body -> Elem<'input> =
     a:tuple_struct_body b:S<";">
     { node!("struct_body", a, b) }
     /
+    a:S<";">
+    { node!("struct_body", a) }
+    /
     a:named_struct_body
     { node!("struct_body", a) }
 
@@ -30,7 +33,7 @@ tuple_struct_body -> Elem<'input> =
     { node!("tuple_struct_body", a, b, c, d) }
 
 named_struct_body -> Elem<'input> =
-    a:S<"{"> b:csep<struct_field> c:S<"}">
+    a:S<"{"> b:opt<csep<struct_field>> c:S<"}">
     { node!("named_struct_body", a, b, c) }
 
 struct_field -> Elem<'input> =
