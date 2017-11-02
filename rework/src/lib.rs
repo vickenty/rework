@@ -7,9 +7,11 @@ pub mod syntax;
 pub mod parser {
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
+pub mod query;
 pub mod cmd;
 
 pub mod prelude {
-    pub use syntax::{text, find, walk, Elem};
+    pub use syntax::{text, walk, Elem};
     pub use syntax::Elem::*;
+    pub use query::find;
 }
