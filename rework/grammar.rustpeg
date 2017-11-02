@@ -8,7 +8,8 @@ item -> Elem<'input> =
     use_item /
     struct_item /
     enum_item /
-    type_item
+    type_item /
+    fn_item
 
 use_item -> Elem<'input> =
     a:opt<Pub> b:Use c:S<[^;]+> d:S<";">
@@ -92,6 +93,58 @@ type_bound -> Elem<'input> =
     a:S<":"> b:type_name
     { node!("type_bound", a, b) }
 
+fn_item -> Elem<'input> =
+    a:opt<Pub> b:Fn c:fn_signature d:block
+    { node!("fn_item", a, b, c, d) }
+
+fn_signature -> Elem<'input> =
+    a:fn_parameters b:opt<fn_return_type>
+    { node!("fn_signature", a, b) }
+
+fn_parameters -> Elem<'input> =
+    a:S<"("> b:csep<fn_parameter> c:S<")">
+    { node!("fn_parameters", a, b, c) }
+
+fn_parameter -> Elem<'input> =
+    a:pattern b:S<":"> c:type_name
+    { node!("fn_parameter", a, b, c) }
+
+fn_return_type -> Elem<'input> =
+    a:S<"->"> b:type_name
+    { node!("fn_return_type", a, b) }
+
+pattern -> Elem<'input> =
+    a:pattern0
+    { node!("pattern", a) }
+
+pattern0 -> Elem<'input> =
+    Ident
+    // TODO
+
+block -> Elem<'input> =
+    a:S<"{"> b:list<stmt> c:opt<expr> c:S<"}">
+    { node!("block", a, b, c) }
+
+stmt -> Elem<'input> =
+    let_stmt /
+    expr_stmt
+
+let_stmt -> Elem<'input> =
+    a:S<"let"> b:pattern c:S<"="> d:expr e:S<";">
+    { node!("let_stmt", a, b, c, d, e) }
+
+expr_stmt -> Elem<'input> =
+    a:expr b:S<";">
+    { node!("expr_stmt", a, b) }
+
+expr -> Elem<'input> =
+    a:expr0
+    { node!("expr", a) }
+
+expr0 -> Elem<'input> =
+    Ident
+    // TODO
+
 // Whitespace
 _ = ([ \t\n] / "//" [^\n]* "\n")*
 
@@ -114,23 +167,24 @@ Pub -> Elem<'input> = K<"pub">
 Struct -> Elem<'input> = K<"struct">
 Type -> Elem<'input> = K<"type">
 Use -> Elem<'input> = K<"use">
+Fn -> Elem<'input> = K<"fn">
 
 // Identifiers
 Ident -> Elem<'input> =
-    p:$(_) t:$([a-zA-Z_] [a-zA-Z0-9_]*) 
+    p:$(_) t:$([a-zA-Z_] [a-zA-Z0-9_]*)
     { text(p, t) }
 
 // Comma-separated lists
 csep<ex> =
-    xs:cs_elem<ex>* x:cs_last<ex>? 
+    xs:cs_elem<ex>* x:cs_last<ex>?
     {
         let mut xs = xs;
         if let Some(x) = x { xs.push(x) }
         node_vec("comma_list", xs)
     }
-    
+
 cs_elem<ex> =
-    e:ex c:S<","> 
+    e:ex c:S<",">
     { node!("comma_elem", e, c) }
 
 cs_last<ex> =
