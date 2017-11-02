@@ -247,3 +247,16 @@ pub fn node_vec<'i>(kind: Kind, children: Vec<Elem<'i>>) -> Elem<'i> {
 macro_rules! node {
     ($kind:expr $(, $child:expr)*) => ($crate::syntax::node_vec($kind, vec![ $( $child ),* ]));
 }
+
+pub fn append<'i, T>(mut xs: Vec<Elem<'i>>, x: T) -> Vec<Elem<'i>>
+where T: IntoIterator<Item=Elem<'i>> + 'i
+{
+    xs.extend(x);
+    xs
+}
+
+pub fn prepend<'i>(x: Elem<'i>, mut xs: Vec<Elem<'i>>) -> Vec<Elem<'i>> {
+    xs.insert(0, x);
+    xs
+}
+

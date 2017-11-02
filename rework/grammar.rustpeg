@@ -41,14 +41,6 @@ struct_field -> Elem<'input> =
     a:opt<Pub> b:Ident c:S<":"> d:type_name
     { node!("struct_field", a, b, c, d) }
 
-type_name -> Elem<'input> =
-    a:Ident b:opt<type_arguments>
-    { node!("type_name", a, b) }
-
-type_arguments -> Elem<'input> =
-    a:S<"<"> b:csep<type_name> c:S<">">
-    { node!("type_arguments", a, b, c) }
-
 enum_item -> Elem<'input> =
     a:list<attribute> b:opt<Pub> c:Enum d:Ident e:enum_body
     { node!("enum_item", a, b, c, d, e) }
@@ -118,8 +110,8 @@ pattern -> Elem<'input> =
     { node!("pattern", a) }
 
 pattern0 -> Elem<'input> =
-    Ident
-    // TODO
+    expr_path
+    // TOOD
 
 block -> Elem<'input> =
     a:S<"{"> b:list<stmt> c:opt<expr> d:S<"}">
@@ -137,13 +129,33 @@ expr_stmt -> Elem<'input> =
     a:expr b:S<";">
     { node!("expr_stmt", a, b) }
 
-expr -> Elem<'input> =
-    a:expr0
-    { node!("expr", a) }
+type_name -> Elem<'input> =
+    a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
+    { node_vec("type_name", prepend(a, b)) }
 
-expr0 -> Elem<'input> =
-    Ident
-    // TODO
+type_arguments<prefix> =
+    a:prefix b:S<"<"> c:csep<type_name> d:S<">">
+    { node!("type_arguments", a, b, c, d) }
+
+type_path_elem<prefix> =
+    a:prefix b:Ident c:opt<type_arguments<empty>>
+    { node!("path_elem", a, b, c) }
+
+expr -> Elem<'input> =
+    prim
+
+prim -> Elem<'input> =
+    expr_path
+
+expr_path -> Elem<'input> =
+    a:expr_path_elem<opt<S<"::">>> b:expr_path_elem<S<"::">>*
+    { node_vec("expr_path", prepend(a, b)) }
+
+expr_path_elem<prefix> =
+    a:prefix b:Ident c:opt<type_arguments<S<"::">>>
+    { node!("path_elem", a, b, c) }
+
+empty -> Elem<'input> = { node!("empty") }
 
 // Whitespace
 _ = ([ \t\n] / "//" [^\n]* "\n")*
@@ -177,11 +189,7 @@ Ident -> Elem<'input> =
 // Comma-separated lists
 csep<ex> =
     xs:cs_elem<ex>* x:cs_last<ex>?
-    {
-        let mut xs = xs;
-        if let Some(x) = x { xs.push(x) }
-        node_vec("comma_list", xs)
-    }
+    { node_vec("comma_list", append(xs, x)) }
 
 cs_elem<ex> =
     e:ex c:S<",">
