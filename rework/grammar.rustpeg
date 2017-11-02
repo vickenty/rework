@@ -98,8 +98,8 @@ fn_item -> Elem<'input> =
     { node!("fn_item", a, b, c, d) }
 
 fn_signature -> Elem<'input> =
-    a:fn_parameters b:opt<fn_return_type>
-    { node!("fn_signature", a, b) }
+    a:Ident b:fn_parameters c:opt<fn_return_type>
+    { node!("fn_signature", a, b, c) }
 
 fn_parameters -> Elem<'input> =
     a:S<"("> b:csep<fn_parameter> c:S<")">
@@ -122,8 +122,8 @@ pattern0 -> Elem<'input> =
     // TODO
 
 block -> Elem<'input> =
-    a:S<"{"> b:list<stmt> c:opt<expr> c:S<"}">
-    { node!("block", a, b, c) }
+    a:S<"{"> b:list<stmt> c:opt<expr> d:S<"}">
+    { node!("block", a, b, c, d) }
 
 stmt -> Elem<'input> =
     let_stmt /
