@@ -7,7 +7,12 @@ pub mod syntax;
 pub mod parser {
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
+
 pub mod query;
+pub mod query_parser {
+    include!(concat!(env!("OUT_DIR"), "/query.rs"));
+}
+
 pub mod cmd;
 
 pub mod prelude {

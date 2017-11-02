@@ -1,6 +1,6 @@
 use syntax::Elem;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum QueryOp<'a> {
     Any,
     Many,
@@ -8,6 +8,7 @@ pub enum QueryOp<'a> {
     Size(usize, usize),
     More(usize),
     Query(&'a [QueryOp<'a>]),
+    QueryVec(Vec<QueryOp<'a>>),
     Nth(usize),
     Last,
     PrefixPat(&'a str),
@@ -74,6 +75,13 @@ pub fn find<'a, 'i: 'a>(root: &'a mut Elem<'i>, query: &[QueryOp], f: &mut FnMut
             }
         },
         QueryOp::Query(subquery) => {
+            let mut found = false;
+            find(root, subquery, &mut |_| found = true);
+            if found {
+                find(root, rest, f);
+            }
+        }
+        QueryOp::QueryVec(ref subquery) => {
             let mut found = false;
             find(root, subquery, &mut |_| found = true);
             if found {

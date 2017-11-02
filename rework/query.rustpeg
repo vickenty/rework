@@ -1,0 +1,29 @@
+use query::QueryOp;
+use query::QueryOp::*;
+
+pub query -> Vec<QueryOp<'input>> =
+    _ q:(query_op ** _) _ { q }
+
+query_op -> QueryOp<'input> =
+    "*" { Any } /
+    ".." { Many } /
+    k:$([a-z_]+) { Kind(k) } /
+    "[" _ "=" _ n:number _ "]" { Size(n, n) } /
+    "[" _ "<" _ n:number _ "]" { Size(0, n) } /
+    "[" _ ">" _ n:number _ "]" { More(n) } /
+    "(" q:query ")" { QueryVec(q) } /
+    "{" _ ":first" _ "}" { Nth(0) } /
+    "{" _ ":nth" _ n:number _ "}" { Nth(n) } /
+    "{" _ ":last" _ "}" { Last } /
+    "{" _ ":prefix" _ "~" _ s:string _ "}" { PrefixPat(s) } /
+    "{" _ ":prefix" _ "=" _ s:string _ "}" { PrefixEq(s) } /
+    "{" _ ":text" _ "~" _ s:string _ "}" { TextPat(s) } /
+    "{" _ ":text" _ "=" _ s:string _ "}" { TextEq(s) }
+
+_ = [ \t\n]*
+
+number -> usize =
+    n:$([0-9]*<1,8>) { n.parse().unwrap() }
+
+string -> &'input str =
+    ["] s:$( [^"\\\n]* ) ["] { s }
