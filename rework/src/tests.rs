@@ -65,5 +65,11 @@ parse! {
             vec::Vec<( u32, &'static [ String ])>,
             &'a mut ::std::collections::HashSet < String >>
     }
-
+    type_name type_fn1 { fn(u8) -> u32 }
+    type_name type_fn2 { fn(x: u8) }
+    type_name type_fn3 { for<'a> fn(x: &'a u8) }
+    type_name type_fn4 { unsafe extern "C" fn() }
+    type_name trait_obj { &(Copy + Send + 'foo) }
+    type_name impl_trait { impl Iterator<Item=Box<'x>> }
+    type_name never_type { ! }
 }
