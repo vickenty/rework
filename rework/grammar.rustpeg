@@ -130,6 +130,7 @@ expr_stmt -> Elem<'input> =
     { node!("expr_stmt", a, b) }
 
 pub type_name -> Elem<'input> =
+    type_impl /
     type_path /
     type_slice /
     type_array /
@@ -143,12 +144,16 @@ type_path -> Elem<'input> =
     { node_vec("type_path", prepend(a, b)) }
 
 type_arguments<prefix> =
-    a:prefix b:S<"<"> c:csep<type_name / lifetime> d:S<">">
+    a:prefix b:S<"<"> c:csep<type_assoc / type_name / lifetime> d:S<">">
     { node!("type_arguments", a, b, c, d) }
 
 type_path_elem<prefix> =
     a:prefix b:Ident c:opt<type_arguments<empty>>
     { node!("type_path_elem", a, b, c) }
+
+type_assoc -> Elem<'input> =
+    a:Ident b:S<"="> c:type_name
+    { node!("type_assoc", a, b, c) }
 
 type_slice -> Elem<'input> =
     a:S<"["> b:type_name c:S<"]">
@@ -181,6 +186,10 @@ type_as_body -> Elem<'input> =
 type_as_trait -> Elem<'input> =
     a:S<"as"> b:type_path
     { node!("type_as_trait", a, b) }
+
+type_impl -> Elem<'input> =
+    a:Impl b:type_path
+    { node!("type_impl", a, b) }
 
 lifetime -> Elem<'input> =
     a:Lifetime
@@ -227,6 +236,7 @@ Use -> Elem<'input> = K<"use">
 Fn -> Elem<'input> = K<"fn">
 Mut -> Elem<'input> = K<"mut">
 Const -> Elem<'input> = K<"const">
+Impl -> Elem<'input> = K<"impl">
 
 // Identifiers
 Ident -> Elem<'input> =
