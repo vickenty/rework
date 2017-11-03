@@ -16,8 +16,8 @@ use_item -> Elem<'input> =
     { node!("use_item", a, b, c, d) }
 
 struct_item -> Elem<'input> =
-    a:list<attribute> b:opt<Pub> c:Struct d:Ident e:struct_body
-    { node!("struct_item", a, b, c, d, e) }
+    a:list<attribute> b:opt<Pub> c:Struct d:Ident e:opt<type_parameters> f:struct_body
+    { node!("struct_item", a, b, c, d, e, f) }
 
 struct_body -> Elem<'input> =
     a:tuple_struct_body b:S<";">
@@ -42,8 +42,8 @@ struct_field -> Elem<'input> =
     { node!("struct_field", a, b, c, d) }
 
 enum_item -> Elem<'input> =
-    a:list<attribute> b:opt<Pub> c:Enum d:Ident e:enum_body
-    { node!("enum_item", a, b, c, d, e) }
+    a:list<attribute> b:opt<Pub> c:Enum d:Ident e:opt<type_parameters> f:enum_body
+    { node!("enum_item", a, b, c, d, e, f) }
 
 enum_body -> Elem<'input> =
     a:S<"{"> b:csep<enum_variant> c:S<"}">
@@ -129,17 +129,62 @@ expr_stmt -> Elem<'input> =
     a:expr b:S<";">
     { node!("expr_stmt", a, b) }
 
-type_name -> Elem<'input> =
+pub type_name -> Elem<'input> =
+    type_path /
+    type_slice /
+    type_array /
+    type_tuple /
+    type_ref /
+    type_ptr /
+    type_as
+
+type_path -> Elem<'input> =
     a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
-    { node_vec("type_name", prepend(a, b)) }
+    { node_vec("type_path", prepend(a, b)) }
 
 type_arguments<prefix> =
-    a:prefix b:S<"<"> c:csep<type_name> d:S<">">
+    a:prefix b:S<"<"> c:csep<type_name / lifetime> d:S<">">
     { node!("type_arguments", a, b, c, d) }
 
 type_path_elem<prefix> =
     a:prefix b:Ident c:opt<type_arguments<empty>>
-    { node!("path_elem", a, b, c) }
+    { node!("type_path_elem", a, b, c) }
+
+type_slice -> Elem<'input> =
+    a:S<"["> b:type_name c:S<"]">
+    { node!("type_slice", a, b, c) }
+
+type_array -> Elem<'input> =
+    a:S<"["> b:type_name c:S<";"> d:expr e:S<"]">
+    { node!("type_array", a, b, c, d, e) }
+
+type_tuple -> Elem<'input> =
+    a:S<"("> b:csep<type_name> c:S<")">
+    { node!("type_tuple", a, b, c) }
+
+type_ref -> Elem<'input> =
+    a:S<"&"> b:opt<Lifetime> c:opt<Mut> d:type_name
+    { node!("type_ref", a, b, c, d) }
+
+type_ptr -> Elem<'input> =
+    a:S<"*"> b:(Mut / Const) c:type_name
+    { node!("type_ptr", a, b, c) }
+
+type_as -> Elem<'input> =
+    a:type_as_body b:type_path_elem<S<"::">>+
+    { node_vec("type_as", prepend(a, b)) }
+
+type_as_body -> Elem<'input> =
+    a:S<"<"> b:type_name c:opt<type_as_trait> d:S<">">
+    { node!("type_as_body", a, b, c, d) }
+
+type_as_trait -> Elem<'input> =
+    a:S<"as"> b:type_path
+    { node!("type_as_trait", a, b) }
+
+lifetime -> Elem<'input> =
+    a:Lifetime
+    { node!("lifetime", a) }
 
 expr -> Elem<'input> =
     prim
@@ -180,10 +225,19 @@ Struct -> Elem<'input> = K<"struct">
 Type -> Elem<'input> = K<"type">
 Use -> Elem<'input> = K<"use">
 Fn -> Elem<'input> = K<"fn">
+Mut -> Elem<'input> = K<"mut">
+Const -> Elem<'input> = K<"const">
 
 // Identifiers
 Ident -> Elem<'input> =
-    p:$(_) t:$([a-zA-Z_] [a-zA-Z0-9_]*)
+    p:$(_) t:IdentLiteral
+    { text(p, t) }
+
+IdentLiteral-> &'input str =
+    $([a-zA-Z_] [a-zA-Z0-9_]*)
+
+Lifetime -> Elem<'input> =
+    p:$(_) t:$( "'" IdentLiteral)
     { text(p, t) }
 
 // Comma-separated lists

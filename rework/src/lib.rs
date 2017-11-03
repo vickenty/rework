@@ -20,3 +20,6 @@ pub mod prelude {
     pub use syntax::Elem::*;
     pub use query::find;
 }
+
+#[cfg(test)]
+mod tests;
