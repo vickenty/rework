@@ -112,4 +112,3 @@ pub fn find<'a, 'i: 'a>(root: &'a mut Elem<'i>, query: &[QueryOp], f: &mut FnMut
         },
     }
 }
-
