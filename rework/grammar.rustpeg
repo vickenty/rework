@@ -272,7 +272,7 @@ Ident -> Elem<'input> =
     p:$(_) t:IdentLiteral
     { text(p, t) }
 
-IdentLiteral-> &'input str =
+IdentLiteral -> &'input str =
     $([a-zA-Z_] [a-zA-Z0-9_]*)
 
 Lifetime -> Elem<'input> =
