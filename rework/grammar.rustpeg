@@ -138,8 +138,17 @@ expr_stmt -> Elem<'input> =
     { node!("expr_stmt", a, b) }
 
 pub type_name -> Elem<'input> =
+    type_expr /
+    type_prim
+
+type_expr -> Elem<'input> =
+    a:type_prim b:S<"+"> c:(type_name / lifetime)
+    { node!("type_expr", a, b, c) }
+
+type_prim -> Elem<'input> =
     type_impl /
     type_fn /
+    type_fn_trait /
     type_path /
     type_slice /
     type_array /
@@ -147,7 +156,8 @@ pub type_name -> Elem<'input> =
     type_ref /
     type_ptr /
     type_as /
-    type_never
+    type_never /
+    type_group
 
 type_path -> Elem<'input> =
     a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
@@ -178,7 +188,7 @@ type_tuple -> Elem<'input> =
     { node!("type_tuple", a, b, c) }
 
 type_ref -> Elem<'input> =
-    a:S<"&"> b:opt<Lifetime> c:opt<Mut> d:type_name
+    a:S<"&"> b:opt<lifetime> c:opt<Mut> d:type_name
     { node!("type_ref", a, b, c, d) }
 
 type_ptr -> Elem<'input> =
@@ -198,7 +208,7 @@ type_as_trait -> Elem<'input> =
     { node!("type_as_trait", a, b) }
 
 type_impl -> Elem<'input> =
-    a:Impl b:type_path
+    a:Impl b:type_name
     { node!("type_impl", a, b) }
 
 type_fn -> Elem<'input> =
@@ -219,6 +229,14 @@ type_fn_param_name -> Elem<'input> =
 
 type_never -> Elem<'input> =
     S<"!">
+
+type_group -> Elem<'input> =
+    a:S<"("> b:type_name c:S<")">
+    { node!("type_group", a, b, c) }
+
+type_fn_trait -> Elem<'input> =
+    a:opt<type_fn_lifetime> b:FnTrait c:type_fn_signature
+    { node!("type_fn_trait", a, b, c) }
 
 lifetime -> Elem<'input> =
     a:Lifetime
@@ -270,6 +288,7 @@ Unsafe -> Elem<'input> = K<"unsafe">
 Extern -> Elem<'input> = K<"extern">
 For -> Elem<'input> = K<"for">
 As -> Elem<'input> = K<"as">
+FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
 
 // Identifiers
 Ident -> Elem<'input> =
