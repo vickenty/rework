@@ -160,16 +160,20 @@ type_prim -> Elem<'input> =
     type_group
 
 type_path -> Elem<'input> =
-    a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
-    { node_vec("type_path", prepend(a, b)) }
+    a:opt<type_late_lifetime> b:type_path_list
+    { node!("type_path", a, b) }
 
-type_arguments<prefix> =
-    a:prefix b:S<"<"> c:csep<type_assoc / type_name / lifetime> d:S<">">
-    { node!("type_arguments", a, b, c, d) }
+type_path_list -> Elem<'input> =
+    a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
+    { node_vec("type_path_list", prepend(a, b)) }
 
 type_path_elem<prefix> =
     a:prefix b:Ident c:opt<type_arguments<empty>>
     { node!("type_path_elem", a, b, c) }
+
+type_arguments<prefix> =
+    a:prefix b:S<"<"> c:csep<type_assoc / type_name / lifetime> d:S<">">
+    { node!("type_arguments", a, b, c, d) }
 
 type_assoc -> Elem<'input> =
     a:Ident b:S<"="> c:type_name
@@ -212,12 +216,12 @@ type_impl -> Elem<'input> =
     { node!("type_impl", a, b) }
 
 type_fn -> Elem<'input> =
-    a:opt<type_fn_lifetime> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:type_fn_signature
+    a:opt<type_late_lifetime> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:type_fn_signature
     { node!("type_fn", a, b, c, d, e) }
 
-type_fn_lifetime -> Elem<'input> =
+type_late_lifetime -> Elem<'input> =
     a:For b:S<"<"> c:csep<lifetime> d:S<">">
-    { node!("type_fn_lifetime", a, b, c, d) }
+    { node!("type_late_lifetime", a, b, c, d) }
 
 type_fn_signature -> Elem<'input> =
     a:fn_parameters<opt<type_fn_param_name>> b:opt<fn_return_type>
@@ -235,7 +239,7 @@ type_group -> Elem<'input> =
     { node!("type_group", a, b, c) }
 
 type_fn_trait -> Elem<'input> =
-    a:opt<type_fn_lifetime> b:FnTrait c:type_fn_signature
+    a:opt<type_late_lifetime> b:FnTrait c:type_fn_signature
     { node!("type_fn_trait", a, b, c) }
 
 lifetime -> Elem<'input> =
