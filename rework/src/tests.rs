@@ -111,8 +111,8 @@ parse! {
 }
 
 parse! {
-    type_name tuple_unit { () } => { .. type_tuple }
-    type_name tuple_one { (u8,) } => { .. type_tuple }
-    type_name tuple_two { (u8, u8) } => { .. type_tuple }
+    type_name tuple_unit { () } => { .. type_tuple empty }
+    type_name tuple_one { (u8,) } => { .. type_tuple list [= 1] }
+    type_name tuple_two { (u8, u8) } => { .. type_tuple list [= 2] }
     type_name grouped { (u8) } => { .. type_group }
 }

@@ -138,7 +138,7 @@ expr_stmt -> Elem<'input> =
     { node!("expr_stmt", a, b) }
 
 pub type_name -> Elem<'input> =
-    a:sep_list<type_prim / lifetime, S<"+">>
+    a:sep_list1<type_prim / lifetime, S<"+">>
     { node!("type_name", a) }
 
 type_expr -> Elem<'input> =
@@ -188,7 +188,7 @@ type_array -> Elem<'input> =
     { node!("type_array", a, b, c, d, e) }
 
 type_tuple -> Elem<'input> =
-    a:S<"("> b:csep_tuple<type_name> c:S<")">
+    a:S<"("> b:opt<csep_tuple<type_name>> c:S<")">
     { node!("type_tuple", a, b, c) }
 
 type_ref -> Elem<'input> =
@@ -316,29 +316,32 @@ StringLiteral =
     "\"" [^"] "\""
 
 // Separated lists
-sep_list<ex, sep> =
-    xs:sep_elem<ex, sep>* x:sep_last<ex>?
+sep_list0<ex, sep> =
+    xs:sep_elem<ex, sep>* x:sep_elem<ex, empty>?
     { node_vec("list", append(xs, x)) }
+
+sep_list1<ex, sep> =
+    xs:sep_elem<ex, sep>+ x:sep_elem<ex, empty>?
+    { node_vec("list", append(xs, x)) }
+    /
+    x:sep_elem<ex, empty>
+    { node!("list", x) }
 
 // Separated list, tuple style - single element requires trailing separator
 sep_tuple<ex, sep> =
-    xs:sep_elem<ex, sep>+ x:sep_last<ex>?
+    xs:sep_elem<ex, sep>+ x:sep_elem<ex, empty>?
     { node_vec("list", append(xs, x)) }
 
 sep_elem<ex, sep> =
     a:ex b:sep
     { node!("list_elem", a, b) }
 
-sep_last<ex> =
-    a:ex
-    { node!("list_elem", a) }
-
 // Comma-separated lists
-csep<ex> = sep_list<ex, S<",">>
+csep<ex> = sep_list0<ex, S<",">>
 csep_tuple<ex> = sep_tuple<ex, S<",">>
 
 // Non-separated lists
-list<ex> = sep_list<ex, empty>
+list<ex> = sep_list0<ex, empty>
 
 // Optional elements
 opt<ex> =
