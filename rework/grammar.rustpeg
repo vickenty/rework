@@ -188,7 +188,7 @@ type_array -> Elem<'input> =
     { node!("type_array", a, b, c, d, e) }
 
 type_tuple -> Elem<'input> =
-    a:S<"("> b:csep<type_name> c:S<")">
+    a:S<"("> b:csep_tuple<type_name> c:S<")">
     { node!("type_tuple", a, b, c) }
 
 type_ref -> Elem<'input> =
@@ -318,6 +318,11 @@ StringLiteral =
 // Comma-separated lists
 csep<ex> =
     xs:cs_elem<ex>* x:cs_last<ex>?
+    { node_vec("comma_list", append(xs, x)) }
+
+// Comma-separated list inside tuple, requires trailing comma for a one element list.
+csep_tuple<ex> =
+    xs:cs_elem<ex>+ x:cs_last<ex>?
     { node_vec("comma_list", append(xs, x)) }
 
 cs_elem<ex> =
