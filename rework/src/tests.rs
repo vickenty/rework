@@ -2,7 +2,12 @@ use parser;
 use syntax;
 use query::{find, QueryOp};
 
-pub fn check_parses(input: &str, res: parser::ParseResult<syntax::Elem>, pat: &[QueryOp], pat_str: &str) {
+pub fn check_parses(
+    input: &str,
+    res: parser::ParseResult<syntax::Elem>,
+    pat: &[QueryOp],
+    pat_str: &str,
+) {
     match res {
         Ok(mut e) => {
             assert_eq!(&format!("{}", e), input);
@@ -111,4 +116,3 @@ parse! {
     type_name tuple_two { (u8, u8) } => { type_tuple }
     type_name grouped { (u8) } => { type_group }
 }
-
