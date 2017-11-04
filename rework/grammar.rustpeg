@@ -114,8 +114,8 @@ fn_return_type -> Elem<'input> =
     { node!("fn_return_type", a, b) }
 
 pattern -> Elem<'input> =
-    a:pattern0
-    { node!("pattern", a) }
+    a:pattern0 b:opt<type_bound>
+    { node!("pattern", a, b) }
 
 pattern0 -> Elem<'input> =
     expr_path

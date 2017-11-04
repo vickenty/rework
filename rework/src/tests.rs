@@ -76,6 +76,10 @@ parse! {
                 second: Option<Inner>,
             }
         }
+        pub fn test() -> u8 {
+            let foo: u8 = MAX;
+            foo
+        }
     }
 
     type_name ref_slice_u8 { &'a [u8] }
