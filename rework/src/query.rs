@@ -5,6 +5,7 @@ pub enum QueryOp<'a> {
     Any,
     Many,
     Kind(&'a str),
+    KindSelf(&'a str),
     Size(usize, usize),
     More(usize),
     Query(&'a [QueryOp<'a>]),
@@ -26,6 +27,7 @@ macro_rules! query_op {
     ([ < $len:expr ]) => ($crate::query::QueryOp::Size(0, $len));
     ([ > $len:expr ]) => ($crate::query::QueryOp::More($len));
     (( $( $tt:tt )+ )) => ($crate::query::QueryOp::Query(query!($( $tt )+)));
+    ({:is $kind:ident }) => ($crate::query::QueryOp::KindSelf(stringify!($kind)));
     ({:first}) => ($crate::query::QueryOp::Nth(0));
     ({:nth $e:expr}) => ($crate::query::QueryOp::Nth($e));
     ({:last}) => ($crate::query::QueryOp::Last);
@@ -63,6 +65,9 @@ pub fn find<'a, 'i: 'a>(root: &'a mut Elem<'i>, query: &[QueryOp], f: &mut FnMut
             if child.is(query_kind) {
                 find(child, rest, f);
             }
+        },
+        QueryOp::KindSelf(query_kind) => if root.is(query_kind) {
+            find(root, rest, f)
         },
         QueryOp::Size(min, max) => if let Some(count) = root.len() {
             if min <= count && count < max {
