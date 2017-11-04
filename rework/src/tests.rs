@@ -72,4 +72,8 @@ parse! {
     type_name trait_obj { &(Copy + Send + 'foo) }
     type_name impl_trait { impl Iterator<Item=Box<'x>> }
     type_name never_type { ! }
+    type_name fn_trait1 { FnMut() }
+    type_name fn_trait2 { FnOnce() -> u8 }
+    type_name fn_trait3 { Fn((u8, u8)) }
+    type_name fn_impl_bad { impl (Fn() -> impl Fn() -> u8 + 'static) + 'static }
 }
