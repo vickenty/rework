@@ -246,7 +246,7 @@ lifetime -> Elem<'input> =
     a:Lifetime
     { node!("lifetime", a) }
 
-expr -> Elem<'input> =
+pub expr -> Elem<'input> =
     prim
 
 prim -> Elem<'input> =
