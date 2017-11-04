@@ -193,7 +193,7 @@ type_as_body -> Elem<'input> =
     { node!("type_as_body", a, b, c, d) }
 
 type_as_trait -> Elem<'input> =
-    a:S<"as"> b:type_path
+    a:As b:type_path
     { node!("type_as_trait", a, b) }
 
 type_impl -> Elem<'input> =
@@ -265,6 +265,7 @@ Impl -> Elem<'input> = K<"impl">
 Unsafe -> Elem<'input> = K<"unsafe">
 Extern -> Elem<'input> = K<"extern">
 For -> Elem<'input> = K<"for">
+As -> Elem<'input> = K<"as">
 
 // Identifiers
 Ident -> Elem<'input> =
