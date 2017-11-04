@@ -86,20 +86,28 @@ type_bound -> Elem<'input> =
     { node!("type_bound", a, b) }
 
 fn_item -> Elem<'input> =
-    a:opt<Pub> b:Fn c:fn_signature d:block
-    { node!("fn_item", a, b, c, d) }
+    a:opt<Pub> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:fn_signature f:block
+    { node!("fn_item", a, b, c, d, e, f) }
+
+fn_abi -> Elem<'input> =
+    a:Extern b:opt<String>
+    { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
-    a:Ident b:fn_parameters c:opt<fn_return_type>
+    a:Ident b:fn_parameters<fn_param_name> c:opt<fn_return_type>
     { node!("fn_signature", a, b, c) }
 
-fn_parameters -> Elem<'input> =
-    a:S<"("> b:csep<fn_parameter> c:S<")">
+fn_parameters<param_name> =
+    a:S<"("> b:csep<fn_parameter<param_name>> c:S<")">
     { node!("fn_parameters", a, b, c) }
 
-fn_parameter -> Elem<'input> =
-    a:pattern b:S<":"> c:type_name
-    { node!("fn_parameter", a, b, c) }
+fn_parameter<param_name> =
+    a:param_name b:type_name
+    { node!("fn_parameter", a, b) }
+
+fn_param_name -> Elem<'input> =
+    a:pattern b:S<":">
+    { node!("fn_param_name") }
 
 fn_return_type -> Elem<'input> =
     a:S<"->"> b:type_name
@@ -131,6 +139,7 @@ expr_stmt -> Elem<'input> =
 
 pub type_name -> Elem<'input> =
     type_impl /
+    type_fn /
     type_path /
     type_slice /
     type_array /
@@ -191,6 +200,22 @@ type_impl -> Elem<'input> =
     a:Impl b:type_path
     { node!("type_impl", a, b) }
 
+type_fn -> Elem<'input> =
+    a:opt<type_fn_lifetime> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:type_fn_signature
+    { node!("type_fn", a, b, c, d, e) }
+
+type_fn_lifetime -> Elem<'input> =
+    a:For b:S<"<"> c:csep<lifetime> d:S<">">
+    { node!("type_fn_lifetime", a, b, c, d) }
+
+type_fn_signature -> Elem<'input> =
+    a:fn_parameters<opt<type_fn_param_name>> b:opt<fn_return_type>
+    { node!("type_fn_signature", a, b) }
+
+type_fn_param_name -> Elem<'input> =
+    a:Ident b:S<":">
+    { node!("fn_param_name", a, b) }
+
 lifetime -> Elem<'input> =
     a:Lifetime
     { node!("lifetime", a) }
@@ -237,6 +262,9 @@ Fn -> Elem<'input> = K<"fn">
 Mut -> Elem<'input> = K<"mut">
 Const -> Elem<'input> = K<"const">
 Impl -> Elem<'input> = K<"impl">
+Unsafe -> Elem<'input> = K<"unsafe">
+Extern -> Elem<'input> = K<"extern">
+For -> Elem<'input> = K<"for">
 
 // Identifiers
 Ident -> Elem<'input> =
@@ -249,6 +277,15 @@ IdentLiteral-> &'input str =
 Lifetime -> Elem<'input> =
     p:$(_) t:$( "'" IdentLiteral)
     { text(p, t) }
+
+// Literals
+String -> Elem<'input> =
+    p:$(_) t:$(StringLiteral)
+    { text(p, t) }
+
+StringLiteral =
+    // FIXME
+    "\"" [^"] "\""
 
 // Comma-separated lists
 csep<ex> =
