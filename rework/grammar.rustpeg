@@ -315,32 +315,30 @@ StringLiteral =
     // FIXME
     "\"" [^"] "\""
 
+// Separated lists
+sep_list<ex, sep> =
+    xs:sep_elem<ex, sep>* x:sep_last<ex>?
+    { node_vec("list", append(xs, x)) }
+
+// Separated list, tuple style - single element requires trailing separator
+sep_tuple<ex, sep> =
+    xs:sep_elem<ex, sep>+ x:sep_last<ex>?
+    { node_vec("list", append(xs, x)) }
+
+sep_elem<ex, sep> =
+    a:ex b:sep
+    { node!("list_elem", a, b) }
+
+sep_last<ex> =
+    a:ex
+    { node!("list_elem", a) }
+
 // Comma-separated lists
-csep<ex> =
-    xs:cs_elem<ex>* x:cs_last<ex>?
-    { node_vec("comma_list", append(xs, x)) }
-
-// Comma-separated list inside tuple, requires trailing comma for a one element list.
-csep_tuple<ex> =
-    xs:cs_elem<ex>+ x:cs_last<ex>?
-    { node_vec("comma_list", append(xs, x)) }
-
-cs_elem<ex> =
-    e:ex c:S<",">
-    { node!("comma_elem", e, c) }
-
-cs_last<ex> =
-    e:ex
-    { node!("comma_elem", e) }
+csep<ex> = sep_list<ex, S<",">>
+csep_tuple<ex> = sep_tuple<ex, S<",">>
 
 // Non-separated lists
-list<ex> =
-    xs:list_elem<ex>*
-    { node_vec("list", xs) }
-
-list_elem<ex> =
-    e:ex
-    { node!("list_elem", e) }
+list<ex> = sep_list<ex, empty>
 
 // Optional elements
 opt<ex> =

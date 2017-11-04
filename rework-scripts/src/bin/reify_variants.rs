@@ -13,7 +13,7 @@ fn main() {
 fn process_file(e: &mut Elem) {
     let mut reified: Vec<Elem> = Vec::new();
 
-    find(e, query!(.. variant(* comma_list[>1])), &mut |e| {
+    find(e, query!(.. variant(* list[>1])), &mut |e| {
         reify_struct_variants(e, &mut reified)
     });
 
