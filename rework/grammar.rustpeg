@@ -138,8 +138,8 @@ expr_stmt -> Elem<'input> =
     { node!("expr_stmt", a, b) }
 
 pub type_name -> Elem<'input> =
-    type_expr /
-    type_prim
+    a:sep_list<type_prim / lifetime, S<"+">>
+    { node!("type_name", a) }
 
 type_expr -> Elem<'input> =
     a:type_prim b:S<"+"> c:(type_name / lifetime)
