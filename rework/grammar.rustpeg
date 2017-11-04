@@ -146,7 +146,8 @@ pub type_name -> Elem<'input> =
     type_tuple /
     type_ref /
     type_ptr /
-    type_as
+    type_as /
+    type_never
 
 type_path -> Elem<'input> =
     a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
@@ -215,6 +216,9 @@ type_fn_signature -> Elem<'input> =
 type_fn_param_name -> Elem<'input> =
     a:Ident b:S<":">
     { node!("fn_param_name", a, b) }
+
+type_never -> Elem<'input> =
+    S<"!">
 
 lifetime -> Elem<'input> =
     a:Lifetime
