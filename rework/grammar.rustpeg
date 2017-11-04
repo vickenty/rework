@@ -126,16 +126,16 @@ block -> Elem<'input> =
     { node!("block", a, b, c, d) }
 
 stmt -> Elem<'input> =
-    let_stmt /
-    expr_stmt
+    stmt_let /
+    stmt_expr
 
-let_stmt -> Elem<'input> =
+stmt_let -> Elem<'input> =
     a:S<"let"> b:pattern c:S<"="> d:expr e:S<";">
-    { node!("let_stmt", a, b, c, d, e) }
+    { node!("stmt_let", a, b, c, d, e) }
 
-expr_stmt -> Elem<'input> =
+stmt_expr -> Elem<'input> =
     a:expr b:S<";">
-    { node!("expr_stmt", a, b) }
+    { node!("stmt_expr", a, b) }
 
 pub type_name -> Elem<'input> =
     a:sep_list1<type_prim / lifetime, S<"+">>
