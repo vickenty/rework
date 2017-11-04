@@ -8,6 +8,7 @@ pub mod parser {
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
 
+#[macro_use]
 pub mod query;
 pub mod query_parser {
     include!(concat!(env!("OUT_DIR"), "/query.rs"));
