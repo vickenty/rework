@@ -22,7 +22,7 @@ macro_rules! query_op {
     (*) => ($crate::query::QueryOp::Any);
     (..) => ($crate::query::QueryOp::Many);
     ($kind:ident) => ($crate::query::QueryOp::Kind(stringify!($kind)));
-    ([ = $len:expr ]) => ($crate::query::QueryOp::Size($len, $len));
+    ([ = $len:expr ]) => ($crate::query::QueryOp::Size($len, $len + 1));
     ([ < $len:expr ]) => ($crate::query::QueryOp::Size(0, $len));
     ([ > $len:expr ]) => ($crate::query::QueryOp::More($len));
     (( $( $tt:tt )+ )) => ($crate::query::QueryOp::Query(query!($( $tt )+)));
