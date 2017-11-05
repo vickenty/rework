@@ -245,7 +245,7 @@ pub expr -> Elem<'input> =
     a:expr_binop
     { node!("expr", a) }
 
-expr_binop -> Elem<'input> = #infix<expr_prefix> {
+expr_binop -> Elem<'input> = #infix<expr_cast> {
     #R  a b:S<Assign> c { node!("binop", a, b, c) }
     #R  a b:S<"<-"> c { node!("binop", a, b, c) }
     #L  a b:S<".."> c { node!("binop", a, b, c) }
@@ -265,27 +265,27 @@ expr_binop -> Elem<'input> = #infix<expr_prefix> {
 Assign = ("*" / "/" / "%" / "+" / "-" / "<<" / ">>" / "&" / "|" / "^")? "="
 Compare = "<" "="? / ">" "="? / [!=] "="
 
-expr_prefix -> Elem<'input> =
-    a:(S<[!*-]> / refop) b:expr_prefix
-    { node!("expr_prefix", a, b) }
-    /
-    expr_cast
-
-refop -> Elem<'input> =
-    a:S<"&"> b:opt<Mut>
-    { node!("refop", a, b) }
-
 expr_cast -> Elem<'input> =
     expr_cast0 /
-    expr_prim
+    expr_prefix
 
 expr_cast0 -> Elem<'input> =
-    a:expr_prim b:expr_cast_tail*
+    a:expr_prefix b:expr_cast_tail*
     { b.into_iter().fold(a, |a, (kind, elems)| node_vec(kind, prepend(a, elems))) }
 
 expr_cast_tail -> (&'static str, Vec<Elem<'input>>) =
     a:As b:type_prim
     { ("expr_as", vec![a, b]) }
+
+expr_prefix -> Elem<'input> =
+    a:(S<[!*-]> / refop) b:expr_prefix
+    { node!("expr_prefix", a, b) }
+    /
+    expr_prim
+
+refop -> Elem<'input> =
+    a:S<"&"> b:opt<Mut>
+    { node!("refop", a, b) }
 
 expr_prim -> Elem<'input> =
     float /
