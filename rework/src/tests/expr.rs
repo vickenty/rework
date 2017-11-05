@@ -6,11 +6,9 @@ parse! {
     expr int5 { 0b0100_0001 }
 
     expr flt1 { 10.0_3e+10f32 }
-    expr flt2 { .24e-1 }
-    expr flt3 { .4 }
-    expr flt4 { 0.5 }
-    expr flt5 { 1. }
-    expr flt6 { 1f32 }
+    expr flt2 { 0.5 }
+    expr flt3 { 1. }
+    expr flt4 { 1f32 }
 
     expr struct_named1 { Foo { x: x, y: y } }
     expr struct_named2 { Foo { x, y: y } }
