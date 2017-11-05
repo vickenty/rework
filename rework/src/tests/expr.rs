@@ -105,5 +105,5 @@ parse! {
 parse! {
     expr binop_prec1 { a + b * c } => { .. (* {:text = "+"}) .. (* {:text = "*"})}
     expr binop_prec2 { a * b + c } => { .. (* {:text = "+"}) .. (* {:text = "*"})}
-    expr cast_plus { 1 as f32 + 2. } => { .. ({:text = "+"}) .. ({:text = "as"})}
+    expr cast_plus { 1 as f32 + 2. } => { .. (* {:text = "+"}) .. ({:text = "as"}) }
 }
