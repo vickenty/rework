@@ -242,15 +242,27 @@ type_fn_trait -> Elem<'input> =
     { node!("type_fn_trait", a, b, c) }
 
 pub expr -> Elem<'input> =
-    a:expr_binop
+    a:expr_assign
     { node!("expr", a) }
 
-expr_binop -> Elem<'input> = #infix<expr_cast> {
+expr_assign -> Elem<'input> = #infix<expr_assign_operand> {
     #R  a b:S<Assign> c { node!("binop", a, b, c) }
     #R  a b:S<"<-"> c { node!("binop", a, b, c) }
-    #L  a b:S<".."> c { node!("binop", a, b, c) }
-        a b:S<"..."> c { node!("binop", a, b, c) }
-        a b:S<"..="> c { node!("binop", a, b, c) }
+}
+
+Assign = ("*" / "/" / "%" / "+" / "-" / "<<" / ">>" / "&" / "|" / "^")? "="
+
+expr_assign_operand -> Elem<'input> =
+    expr_range /
+    expr_binop
+
+expr_range -> Elem<'input> =
+    a:opt<expr_binop> b:S<Range> c:opt<expr_binop>
+    { node!("binop", a, b, c) }
+
+Range = "..." / "..=" / ".."
+
+expr_binop -> Elem<'input> = #infix<expr_cast> {
     #L  a b:S<"||"> c { node!("binop", a, b, c) }
     #L  a b:S<"&&"> c { node!("binop", a, b, c) }
     #L  a b:S<Compare> c { node!("binop", a, b, c) }
@@ -263,8 +275,7 @@ expr_binop -> Elem<'input> = #infix<expr_cast> {
     #L  a b:S<[*/%]> c { node!("binop", a, b, c) }
 }
 
-Assign = ("*" / "/" / "%" / "+" / "-" / "<<" / ">>" / "&" / "|" / "^")? "="
-Compare = "<" "="? / ">" "="? / [!=] "="
+Compare = "<" !"-" "="? / ">" "="? / [!=] "="
 
 expr_cast -> Elem<'input> =
     expr_cast0 /
@@ -407,7 +418,7 @@ float -> Elem<'input> =
 
 FloatingLiteral =
     Dec* "." Dec+ FloatingExp? /
-    Dec+ "." FloatingExp? /
+    Dec+ "." !"." FloatingExp? /
     Dec+ FloatingExp
 
 FloatingExp =

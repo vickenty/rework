@@ -86,6 +86,14 @@ parse! {
     expr assign { x = 1 }
     expr assign_add { x += 1 }
 
+    expr range_ops1 { x = 1..2 }
+    expr range_ops2 { x <- 1..2 }
+    expr range_ops3 { x = y <- 1..2 }
+
+    // Can't parse this yet.
+    #[ignore] expr range_ops4 { x = ()..()..() } // rustc parses as (x = ()..())..()
+    #[ignore] expr range_ops5 { x = y..y <- z } // rustc parses as (x = y..y) <- z
+
     expr block { { 1; 2; 3 } }
 
     expr closure1 { || 1 }
@@ -113,6 +121,13 @@ parse! {
 parse! {
     expr binop_prec1 { a + b * c } => { .. (* {:text = "+"}) .. (* {:text = "*"})}
     expr binop_prec2 { a * b + c } => { .. (* {:text = "+"}) .. (* {:text = "*"})}
+    expr place_prec { x = y <- z } => { .. (* {:text = "="}) .. {:text = "<-"}}
     expr cast_plus { 1 as f32 + 2. } => { .. (* {:text = "+"}) .. ({:text = "as"}) }
     expr unop_cast { !0 as f32 } => { .. (* {:text = "as"}) .. ({:text = "!"}) }
+}
+
+#[test]
+fn range_dots() {
+    assert_parses!(expr "12...3", {.. {:text="12"}});
+    assert_parses!(expr "2. ..3", {.. {:text="2."}});
 }
