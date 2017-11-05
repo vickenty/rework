@@ -94,7 +94,7 @@ fn_abi -> Elem<'input> =
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
-    a:Ident b:fn_parameters<fn_param_name> c:opt<fn_return_type>
+    a:Ident b:fn_parameters<fn_param_name<pattern>> c:opt<fn_return_type>
     { node!("fn_signature", a, b, c) }
 
 fn_parameters<param_name> =
@@ -105,8 +105,8 @@ fn_parameter<param_name> =
     a:param_name b:type_name
     { node!("fn_parameter", a, b) }
 
-fn_param_name -> Elem<'input> =
-    a:pattern b:S<":">
+fn_param_name<binding> =
+    a:binding b:S<":">
     { node!("fn_param_name") }
 
 fn_return_type -> Elem<'input> =
@@ -224,12 +224,11 @@ type_late_lifetime -> Elem<'input> =
     { node!("type_late_lifetime", a, b, c, d) }
 
 type_fn_signature -> Elem<'input> =
-    a:fn_parameters<opt<type_fn_param_name>> b:opt<fn_return_type>
+    a:fn_parameters<type_fn_param_name> b:opt<fn_return_type>
     { node!("type_fn_signature", a, b) }
 
 type_fn_param_name -> Elem<'input> =
-    a:Ident b:S<":">
-    { node!("fn_param_name", a, b) }
+    opt<fn_param_name<Ident>>
 
 type_never -> Elem<'input> =
     S<"!">
