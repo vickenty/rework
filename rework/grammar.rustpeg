@@ -107,7 +107,7 @@ fn_parameter<param_name> =
 
 fn_param_name<binding> =
     a:binding b:S<":">
-    { node!("fn_param_name") }
+    { node!("fn_param_name", a, b) }
 
 fn_return_type -> Elem<'input> =
     a:S<"->"> b:type_name
