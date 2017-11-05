@@ -10,6 +10,23 @@ parse! {
     expr flt3 { 1. }
     expr flt4 { 1f32 }
 
+    expr str_ascii { "\"Hello, \u{1f310}\"" }
+    expr str_unicode { "☺" }
+    expr string_raw1 { r"foo\n" }
+    expr string_raw2 { r#"#"# }
+    expr string_raw3 { r##"##"## }
+
+    expr char_ascii { 'a' }
+    expr char_escape1 { '\n' }
+    expr char_escape2 { '\u{1f310}' }
+    expr char_escape3 { '\'' }
+    expr char_unicode { '☺' }
+
+    expr array1 { [ 1 ] }
+    expr array2 { [(a, b), c] }
+    expr array3 { [None; 4] }
+    expr array4 { [None; std::u8::MAX] }
+
     expr struct_named1 { Foo { x: x, y: y } }
     expr struct_named2 { Foo { x, y: y } }
     expr struct_named3 { Foo {} }
@@ -63,6 +80,26 @@ parse! {
 
     expr block { { 1; 2; 3 } }
 
+    expr closure1 { || 1 }
+    expr closure2 { |_| (2, 3) }
+    expr closure3 { |a| { a } }
+    expr closure4 { |&a| *a }
+
+    expr tuple_field { foo.0 }
+    expr named_field1 { foo.bar }
+    expr named_field2 { (**foo).bar }
+
+    expr index1 { foo[bar] }
+    expr index2 { &foo[1..4] }
+    expr index3 { &(*foo)[..] }
+    expr index4 { foo[(a, b)][c] }
+
+    expr call1 { foo(1) }
+    expr call2 { &foo(2) }
+    expr call3 { Foo::bar(baz) }
+    expr call4 { <Foo as Box<u8>>::bar(ook) }
+    expr call5 { mem::size_of::<u8>() }
+    expr call6 { ()() }
 }
 
 parse! {
