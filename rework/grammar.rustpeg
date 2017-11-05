@@ -242,7 +242,8 @@ type_fn_trait -> Elem<'input> =
     { node!("type_fn_trait", a, b, c) }
 
 pub expr -> Elem<'input> =
-    expr_binop
+    a:expr_binop
+    { node!("expr", a) }
 
 expr_binop -> Elem<'input> = #infix<expr_prefix> {
     #R  a b:S<Assign> c { node!("binop", a, b, c) }
