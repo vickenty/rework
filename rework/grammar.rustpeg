@@ -279,7 +279,8 @@ expr_prim -> Elem<'input> =
     float /
     integer /
     string /
-    expr_path
+    expr_path /
+    expr_array
 
 expr_path -> Elem<'input> =
     a:expr_path_elem<opt<S<"::">>> b:expr_path_elem<S<"::">>*
@@ -288,6 +289,21 @@ expr_path -> Elem<'input> =
 expr_path_elem<prefix> =
     a:prefix b:Ident c:opt<type_arguments<S<"::">>>
     { node!("path_elem", a, b, c) }
+
+expr_array -> Elem<'input> =
+    a:S<"["> b:expr_array_body c:S<"]">
+    { node!("array", a, b, c) }
+
+expr_array_body -> Elem<'input> =
+    expr_array_copy /
+    expr_array_list
+
+expr_array_list -> Elem<'input> =
+    csep<expr>
+
+expr_array_copy -> Elem<'input> =
+    a:expr b:S<";"> c:expr
+    { node!("array_copy", a, b, c) }
 
 empty -> Elem<'input> = { node!("empty") }
 
