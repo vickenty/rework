@@ -90,7 +90,7 @@ fn_item -> Elem<'input> =
     { node!("fn_item", a, b, c, d, e, f) }
 
 fn_abi -> Elem<'input> =
-    a:Extern b:opt<String>
+    a:Extern b:opt<string>
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
@@ -242,14 +242,13 @@ type_fn_trait -> Elem<'input> =
     a:opt<type_late_lifetime> b:FnTrait c:type_fn_signature
     { node!("type_fn_trait", a, b, c) }
 
-lifetime -> Elem<'input> =
-    a:Lifetime
-    { node!("lifetime", a) }
-
 pub expr -> Elem<'input> =
-    prim
+    expr_prim
 
-prim -> Elem<'input> =
+expr_prim -> Elem<'input> =
+    float /
+    integer /
+    string /
     expr_path
 
 expr_path -> Elem<'input> =
@@ -269,10 +268,18 @@ Ws -> Elem<'input> =
     p:$(_)
     { text(p, "") }
 
+// Any program text
+T<ex> =
+    p:$(_) t:$(ex)
+    { text(p, t) }
+
+// Text with no leading whitespace allowed
+T_nows<ex> =
+    t:$(ex)
+    { text("", t) }
+
 // Symbols and punctuation: parens, brackets, comma, and such.
-S<ex> = p:$(_) t:$(ex) {
-    text(p, t)
-}
+S<ex> = T<ex>
 
 // Keywords
 K<ex> = p:$(_) t:$(ex) ![a-zA-Z0-9_] {
@@ -296,20 +303,62 @@ FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
 
 // Identifiers
 Ident -> Elem<'input> =
-    p:$(_) t:IdentLiteral
-    { text(p, t) }
+    T<IdentLiteral>
 
 IdentLiteral -> &'input str =
     $([a-zA-Z_] [a-zA-Z0-9_]*)
 
+lifetime -> Elem<'input> =
+    a:Lifetime
+    { node!("lifetime", a) }
+
 Lifetime -> Elem<'input> =
-    p:$(_) t:$( "'" IdentLiteral)
-    { text(p, t) }
+    T<"'" IdentLiteral>
 
 // Literals
-String -> Elem<'input> =
-    p:$(_) t:$(StringLiteral)
-    { text(p, t) }
+Hex = [0-9a-fA-F_]
+Oct = [0-7_]
+Bin = [01_]
+Dec = [0-9_]
+
+integer -> Elem<'input> =
+    a:T<IntegerLiteral> b:opt<T_nows<IntegerSuffix>>
+    { node!("integer", a, b) }
+
+IntegerLiteral =
+    IntegerHex /
+    IntegerOct /
+    IntegerBin /
+    IntegerDec
+
+IntegerHex = "0x" Hex+
+IntegerOct = "0o" Oct+
+IntegerBin = "0b" Bin+
+IntegerDec = Dec+
+
+IntegerSuffix =
+    [ui]("8" / "16" / "32" / "64" / "128" / "size")
+
+float -> Elem<'input> =
+    a:T<IntegerDec> b:T_nows<FloatingSuffix>
+    { node!("floating", a, b) }
+    /
+    a:T<FloatingLiteral> b:opt<T_nows<FloatingSuffix>>
+    { node!("floating", a, b) }
+
+FloatingLiteral =
+    Dec* "." Dec+ FloatingExp? /
+    Dec+ "." FloatingExp? /
+    Dec+ FloatingExp
+
+FloatingExp =
+    [eE][+-]?Dec+
+
+FloatingSuffix = "f32" / "f64"
+
+string -> Elem<'input> =
+    a:T<StringLiteral>
+    { node!("string", a) }
 
 StringLiteral =
     // FIXME
