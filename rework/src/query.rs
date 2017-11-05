@@ -54,6 +54,7 @@ pub fn find<'a, 'i: 'a>(root: &'a mut Elem<'i>, query: &[QueryOp], f: &mut FnMut
         },
 
         QueryOp::Many => {
+            find(root, rest, f);
             for child in root.iter_mut() {
                 find(child, rest, f);
             }
