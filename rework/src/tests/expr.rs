@@ -45,6 +45,14 @@ parse! {
     expr id2 { std::usize::MAX }
     expr id3 { Vec::<u8>::len }
 
+    expr range_full { .. }
+    expr range_open1 { foo.. }
+    expr range_open2 { ..bar }
+    expr range_inc1 { foo...bar }
+    expr range_inc2 { foo..=bar }
+    expr range_inc3 { ...40 }
+    expr range_inc4 { ..=50 }
+
     expr unop_neg { -1 }
     expr unop_not { !0 }
     expr unop_ref { &foo }
