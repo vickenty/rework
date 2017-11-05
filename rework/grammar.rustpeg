@@ -250,6 +250,7 @@ expr_binop -> Elem<'input> = #infix<expr_cast> {
     #R  a b:S<"<-"> c { node!("binop", a, b, c) }
     #L  a b:S<".."> c { node!("binop", a, b, c) }
         a b:S<"..."> c { node!("binop", a, b, c) }
+        a b:S<"..="> c { node!("binop", a, b, c) }
     #L  a b:S<"||"> c { node!("binop", a, b, c) }
     #L  a b:S<"&&"> c { node!("binop", a, b, c) }
     #L  a b:S<Compare> c { node!("binop", a, b, c) }
