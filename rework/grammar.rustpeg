@@ -242,8 +242,11 @@ type_fn_trait -> Elem<'input> =
     { node!("type_fn_trait", a, b, c) }
 
 pub expr -> Elem<'input> =
-    a:expr_assign
+    a:expr_inner
     { node!("expr", a) }
+
+expr_inner -> Elem<'input> =
+    expr_assign
 
 expr_assign -> Elem<'input> = #infix<expr_assign_operand> {
     #R  a b:S<Assign> c { node!("binop", a, b, c) }
@@ -304,7 +307,9 @@ expr_prim -> Elem<'input> =
     integer /
     string /
     expr_path /
-    expr_array
+    expr_array /
+    expr_tuple /
+    expr_group
 
 expr_path -> Elem<'input> =
     a:expr_path_elem<opt<S<"::">>> b:expr_path_elem<S<"::">>*
@@ -328,6 +333,14 @@ expr_array_list -> Elem<'input> =
 expr_array_copy -> Elem<'input> =
     a:expr b:S<";"> c:expr
     { node!("array_copy", a, b, c) }
+
+expr_tuple -> Elem<'input> =
+    a:S<"("> b:opt<csep_tuple<expr_inner>> c:S<")">
+    { node!("expr_tuple", a, b, c) }
+
+expr_group -> Elem<'input> =
+    a:S<"("> b:expr_inner c:S<")">
+    { node!("expr_group", a, b, c) }
 
 empty -> Elem<'input> = { node!("empty") }
 
