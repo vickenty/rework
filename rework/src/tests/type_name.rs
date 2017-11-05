@@ -1,4 +1,6 @@
 parse! {
+    type_name array1 { [u8; 10] }
+    type_name array2 { [u8; std::u8::MAX as usize] }
     type_name ref_slice_u8 { &'a [u8] }
     type_name mut_slice_u8 { &mut [u8] }
     type_name mut_a_slice_u8 { &'a mut [u8] }
