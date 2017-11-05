@@ -37,18 +37,20 @@ pub fn check_parses(
 }
 
 macro_rules! parse {
-    ( $( $type:ident $name:ident { $( $tt:tt )* })* ) => {
+    ( $( $(#[$me:meta])* $type:ident $name:ident { $( $tt:tt )* })* ) => {
         $(
             #[test]
+            $(#[$me])*
             fn $name() {
                 let input = stringify!($($tt)*).trim_right();
                 $crate::tests::check_parses(input, $crate::parser::$type(input), &[], "");
             }
         )*
     };
-    ( $( $type:ident $name:ident { $( $tt:tt )* } => { $( $pat:tt )* })* ) => {
+    ( $( $(#[$me:meta])* $type:ident $name:ident { $( $tt:tt )* } => { $( $pat:tt )* })* ) => {
         $(
             #[test]
+            $(#[$me])*
             fn $name() {
                 let input = stringify!($($tt)*).trim_right();
                 let query = query!($( $pat )*);
