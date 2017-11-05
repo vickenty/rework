@@ -5,19 +5,19 @@ pub program -> Elem<'input> =
     { node!("program", a, b) }
 
 item -> Elem<'input> =
-    use_item /
-    struct_item /
-    enum_item /
-    type_item /
-    fn_item
+    item_use /
+    item_struct /
+    item_enum /
+    item_type /
+    item_fn
 
-use_item -> Elem<'input> =
+item_use -> Elem<'input> =
     a:opt<Pub> b:Use c:S<[^;]+> d:S<";">
-    { node!("use_item", a, b, c, d) }
+    { node!("item_use", a, b, c, d) }
 
-struct_item -> Elem<'input> =
+item_struct -> Elem<'input> =
     a:list<attribute> b:opt<Pub> c:Struct d:Ident e:opt<type_parameters> f:struct_body
-    { node!("struct_item", a, b, c, d, e, f) }
+    { node!("item_struct", a, b, c, d, e, f) }
 
 struct_body -> Elem<'input> =
     a:tuple_struct_body b:S<";">
@@ -41,9 +41,9 @@ struct_field -> Elem<'input> =
     a:opt<Pub> b:Ident c:S<":"> d:type_name
     { node!("struct_field", a, b, c, d) }
 
-enum_item -> Elem<'input> =
+item_enum -> Elem<'input> =
     a:list<attribute> b:opt<Pub> c:Enum d:Ident e:opt<type_parameters> f:enum_body
-    { node!("enum_item", a, b, c, d, e, f) }
+    { node!("item_enum", a, b, c, d, e, f) }
 
 enum_body -> Elem<'input> =
     a:S<"{"> b:csep<enum_variant> c:S<"}">
@@ -65,9 +65,9 @@ attribute_arguments -> Elem<'input> =
     a:S<"("> b:csep<Ident> c:S<")">
     { node!("attribute_arguments", a, b, c) }
 
-type_item -> Elem<'input> =
+item_type -> Elem<'input> =
     a:opt<Pub> b:Type c:type_decl d:S<"="> e:type_name f:S<";">
-    { node!("type_item", a, b, c, d, e, f) }
+    { node!("item_type", a, b, c, d, e, f) }
 
 type_decl -> Elem<'input> =
     a:Ident b:opt<type_parameters>
@@ -85,9 +85,9 @@ type_bound -> Elem<'input> =
     a:S<":"> b:type_name
     { node!("type_bound", a, b) }
 
-fn_item -> Elem<'input> =
+item_fn -> Elem<'input> =
     a:opt<Pub> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:fn_signature f:block
-    { node!("fn_item", a, b, c, d, e, f) }
+    { node!("item_fn", a, b, c, d, e, f) }
 
 fn_abi -> Elem<'input> =
     a:Extern b:opt<string>
