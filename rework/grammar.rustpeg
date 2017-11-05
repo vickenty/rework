@@ -243,7 +243,37 @@ type_fn_trait -> Elem<'input> =
     { node!("type_fn_trait", a, b, c) }
 
 pub expr -> Elem<'input> =
+    expr_binop
+
+expr_binop -> Elem<'input> = #infix<expr_prefix> {
+    #R  a b:S<Assign> c { node!("binop", a, b, c) }
+    #R  a b:S<"<-"> c { node!("binop", a, b, c) }
+    #L  a b:S<".."> c { node!("binop", a, b, c) }
+        a b:S<"..."> c { node!("binop", a, b, c) }
+    #L  a b:S<"||"> c { node!("binop", a, b, c) }
+    #L  a b:S<"&&"> c { node!("binop", a, b, c) }
+    #L  a b:S<Compare> c { node!("binop", a, b, c) }
+    #L  a b:S<"|"> c { node!("binop", a, b, c) }
+    #L  a b:S<"^"> c { node!("binop", a, b, c) }
+    #L  a b:S<"&"> c { node!("binop", a, b, c) }
+    #L  a b:S<"<<"> c { node!("binop", a, b, c) }
+        a b:S<">>"> c { node!("binop", a, b, c) }
+    #L  a b:S<[+-]> c { node!("binop", a, b, c) }
+    #L  a b:S<[*/%]> c { node!("binop", a, b, c) }
+}
+
+Assign = ("*" / "/" / "%" / "+" / "-" / "<<" / ">>" / "&" / "|" / "^")? "="
+Compare = "<" "="? / ">" "="? / [!=] "="
+
+expr_prefix -> Elem<'input> =
+    a:(S<[!*-]> / refop) b:expr_prefix
+    { node!("expr_prefix", a, b) }
+    /
     expr_prim
+
+refop -> Elem<'input> =
+    a:S<"&"> b:opt<Mut>
+    { node!("refop", a, b) }
 
 expr_prim -> Elem<'input> =
     float /
