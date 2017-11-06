@@ -466,10 +466,16 @@ FloatingSuffix = "f32" / "f64"
 string -> Elem<'input> =
     a:T<StringLiteral>
     { node!("string", a) }
+    /
+    raw_string
 
 StringLiteral =
     // FIXME
     "\"" [^"] "\""
+
+raw_string -> Elem<'input> =
+    p:$(_) a:$("r" "#"* ["]) b:$(([^"] / ["] !( "#"*<{a.len()-2}> ))*) c:$( ["] "#"*<{a.len()-2}> )
+    { node!("raw_string", text(p, a), text("", b), text("", c)) }
 
 // Separated lists
 sep_list0<ex, sep> =
