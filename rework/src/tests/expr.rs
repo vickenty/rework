@@ -13,8 +13,8 @@ parse! {
     expr str_ascii { "\"Hello, \u{1f310}\"" }
     expr str_unicode { "☺" }
     expr string_raw1 { r"foo\n" }
-    expr string_raw2 { r#"#"# }
-    expr string_raw3 { r##"##"## }
+    expr string_raw2 { r#"#""# }
+    expr string_raw3 { r##"##"#"## }
 
     expr char_ascii { 'a' }
     expr char_escape1 { '\n' }
