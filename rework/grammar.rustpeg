@@ -352,7 +352,7 @@ expr_struct -> Elem<'input> =
     }
 
 expr_struct_ctor -> Elem<'input> =
-    &struct_ctor_allowed a:S<"{"> b:csep<struct_field> c:S<"}">
+    &struct_ctor_allowed a:S<"{"> b:csep<struct_ctor_field> c:S<"}">
     { node!("struct_ctor", a, b, c) }
 
 struct_ctor_allowed =
@@ -363,6 +363,14 @@ struct_ctor_allowed =
             Err("")
         }
     }
+
+struct_ctor_field -> Elem<'input> =
+    a:Ident b:opt<struct_ctor_value>
+    { node!("struct_ctor_field", a, b) }
+
+struct_ctor_value -> Elem<'input> =
+    a:S<":"> b:expr
+    { node!("struct_ctor_value", a, b) }
 
 expr_path -> Elem<'input> =
     a:expr_path_elem<opt<S<"::">>> b:expr_path_elem<S<"::">>*
