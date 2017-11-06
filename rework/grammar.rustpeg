@@ -1,5 +1,7 @@
 use syntax::*;
 
+#![arguments(struct_literal: bool)]
+
 pub program -> Elem<'input> =
     a:list<item> b:Ws
     { node!("program", a, b) }
@@ -330,10 +332,37 @@ expr_prim -> Elem<'input> =
     float /
     integer /
     string /
-    expr_path /
+    expr_loop /
+    expr_for /
+    expr_while /
+    expr_if /
+    expr_struct /
     expr_array /
     expr_tuple /
     expr_group
+
+expr_struct -> Elem<'input> =
+    a:expr_path b:expr_struct_ctor?
+    {
+        if let Some(b) = b {
+            node!("expr_struct", a, b)
+        } else {
+            a
+        }
+    }
+
+expr_struct_ctor -> Elem<'input> =
+    &struct_ctor_allowed a:S<"{"> b:csep<struct_field> c:S<"}">
+    { node!("struct_ctor", a, b, c) }
+
+struct_ctor_allowed =
+    {?
+        if struct_literal {
+            Ok(())
+        } else {
+            Err("")
+        }
+    }
 
 expr_path -> Elem<'input> =
     a:expr_path_elem<opt<S<"::">>> b:expr_path_elem<S<"::">>*
@@ -363,8 +392,40 @@ expr_tuple -> Elem<'input> =
     { node!("expr_tuple", a, b, c) }
 
 expr_group -> Elem<'input> =
-    a:S<"("> b:expr_inner c:S<")">
+    a:S<"("> b:expr_inner<( true )> c:S<")">
     { node!("expr_group", a, b, c) }
+
+expr_loop -> Elem<'input> =
+    a:Loop b:block
+    { node!("expr_loop", a, b) }
+
+expr_for -> Elem<'input> =
+    a:For b:pattern c:In d:expr_no_struct e:block
+    { node!("expr_for", a, b, c, d, e) }
+
+expr_no_struct -> Elem<'input> =
+    a:expr<(false)>
+    { a }
+
+expr_while -> Elem<'input> =
+    a:While b:condition c:block
+    { node!("expr_while", a, b, c) }
+
+condition -> Elem<'input> =
+    let_pattern /
+    expr_no_struct
+
+let_pattern -> Elem<'input> =
+    a:Let b:pattern c:S<"="> d:expr_no_struct
+    { node!("let_pattern", a, b, c, d) }
+
+expr_if -> Elem<'input> =
+    a:If b:condition c:block d:opt<expr_if_else>
+    { node!("expr_if", a, b, c, d) }
+
+expr_if_else -> Elem<'input> =
+    a:Else b:block
+    { node!("expr_if_else", a, b) }
 
 empty -> Elem<'input> = { node!("empty") }
 
@@ -407,6 +468,12 @@ Extern -> Elem<'input> = K<"extern">
 For -> Elem<'input> = K<"for">
 As -> Elem<'input> = K<"as">
 FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
+While -> Elem<'input> = K<"while">
+If -> Elem<'input> = K<"if">
+Else -> Elem<'input> = K<"else">
+Let -> Elem<'input> = K<"let">
+Loop -> Elem<'input> =  K<"loop">
+In -> Elem<'input> = K<"in">
 
 // Identifiers
 Ident -> Elem<'input> =

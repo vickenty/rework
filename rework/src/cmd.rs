@@ -49,7 +49,7 @@ where
     F: FnMut(&mut Elem),
 {
     let buffer = read_file_to_string(input)?;
-    let mut parsed = parser::program(&buffer)?;
+    let mut parsed = parser::program(&buffer, Default::default())?;
 
     f(&mut parsed);
 

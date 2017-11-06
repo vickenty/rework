@@ -5,6 +5,11 @@ extern crate serde_derive;
 #[macro_use]
 pub mod syntax;
 pub mod parser {
+    #[derive(Copy, Clone, Debug, Default)]
+    pub struct Env {
+        no_struct: bool,
+    }
+
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
 

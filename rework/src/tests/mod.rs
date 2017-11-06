@@ -43,7 +43,7 @@ macro_rules! parse {
             $(#[$me])*
             fn $name() {
                 let input = stringify!($($tt)*).trim_right();
-                $crate::tests::check_parses(input, $crate::parser::$type(input), &[], "");
+                $crate::tests::check_parses(input, $crate::parser::$type(input, true), &[], "");
             }
         )*
     };
@@ -63,7 +63,7 @@ macro_rules! assert_parses {
     ( $type:ident $input:expr, { $( $pat:tt )+ } ) => (
         let query = query!($( $pat )*);
         let query_str = stringify!($( $pat )*);
-        $crate::tests::check_parses($input, $crate::parser::$type($input), query, query_str);
+        $crate::tests::check_parses($input, $crate::parser::$type($input, true), query, query_str);
     )
 }
 

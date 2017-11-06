@@ -5,7 +5,7 @@ authors = ["Vickenty Fesunov <kent@setattr.net>"]
 build = "build.rs"
 
 [build-dependencies]
-peg="0.5"
+peg={git="https://github.com/vickenty/rust-peg", branch="rule-args"}
 
 [dependencies]
 serde="1.0"
