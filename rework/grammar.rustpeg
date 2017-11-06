@@ -284,9 +284,13 @@ expr_cast -> Elem<'input> =
     expr_cast0 /
     expr_prefix
 
+// Helper to avoid left-recursion for suffix operators
+suffix_expr<head, tail> =
+    head:head tail:tail*
+    { tail.into_iter().fold(head, |a, (kind, es)| node_vec(kind, prepend(a, es))) }
+
 expr_cast0 -> Elem<'input> =
-    a:expr_prefix b:expr_cast_tail*
-    { b.into_iter().fold(a, |a, (kind, elems)| node_vec(kind, prepend(a, elems))) }
+    suffix_expr<expr_prefix, expr_cast_tail>
 
 expr_cast_tail -> (&'static str, Vec<Elem<'input>>) =
     a:As b:type_prim
@@ -296,11 +300,31 @@ expr_prefix -> Elem<'input> =
     a:(S<[!*-]> / refop) b:expr_prefix
     { node!("expr_prefix", a, b) }
     /
-    expr_prim
+    expr_suffix
 
 refop -> Elem<'input> =
     a:S<"&"> b:opt<Mut>
     { node!("refop", a, b) }
+
+expr_suffix -> Elem<'input> =
+    suffix_expr<expr_prim, expr_suffix_tail>
+
+expr_suffix_tail -> (&'static str, Vec<Elem<'input>>) =
+    expr_index /
+    expr_call /
+    expr_field
+
+expr_index -> (&'static str, Vec<Elem<'input>>) =
+    a:S<"["> b:expr_inner c:S<"]">
+    { ("expr_index", vec![a, b, c]) }
+
+expr_call -> (&'static str, Vec<Elem<'input>>) =
+    a:S<"("> b:csep<expr_inner> c:S<")">
+    { ("expr_call", vec![a, b, c]) }
+
+expr_field -> (&'static str, Vec<Elem<'input>>) =
+    a:S<"."> b:(T<IntegerDec> / Ident)
+    { ("expr_field", vec![a, b]) }
 
 expr_prim -> Elem<'input> =
     float /
