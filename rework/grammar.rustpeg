@@ -332,11 +332,17 @@ expr_prim -> Elem<'input> =
     float /
     integer /
     string /
+    block /
     expr_loop /
     expr_for /
     expr_while /
     expr_if /
+    expr_return /
+    expr_break /
+    expr_match /
+    expr_closure /
     expr_struct /
+    expr_qual /
     expr_array /
     expr_tuple /
     expr_group
@@ -379,6 +385,10 @@ expr_path -> Elem<'input> =
 expr_path_elem<prefix> =
     a:prefix b:Ident c:opt<type_arguments<S<"::">>>
     { node!("path_elem", a, b, c) }
+
+expr_qual -> Elem<'input> =
+    a:type_as_body b:expr_path_elem<S<"::">>+
+    { node_vec("expr_qual", prepend(a, b)) }
 
 expr_array -> Elem<'input> =
     a:S<"["> b:expr_array_body c:S<"]">
@@ -434,6 +444,48 @@ expr_if -> Elem<'input> =
 expr_if_else -> Elem<'input> =
     a:Else b:block
     { node!("expr_if_else", a, b) }
+
+expr_return -> Elem<'input> =
+    a:K<"return"> b:expr
+    { node!("expr_return", a, b) }
+
+expr_break -> Elem<'input> =
+    a:K<"break"> b:opt<label> c:opt<expr>
+    { node!("expr_break", a, b, c) }
+
+expr_match -> Elem<'input> =
+    a:K<"match"> b:expr<(false)> c:S<"{"> d:list<match_case> e:S<"}">
+    { node!("expr_match", a, b, c, d, e) }
+
+match_case -> Elem<'input> =
+    a:pattern b:opt<match_guard> c:S<"=>"> d:match_value
+    { node!("match_case", a, b, c, d.0, d.1) }
+
+match_guard -> Elem<'input> =
+    a:K<"if"> b:expr<(true)>
+    { node!("match_guard", a, b) }
+
+match_value -> (Elem<'input>, Elem<'input>) =
+    a:block b:opt<S<",">>
+    { (a, b) }
+    /
+    a:expr<(true)> b:S<",">
+    { (a, b) }
+
+expr_closure -> Elem<'input> =
+    a:S<"|"> b:csep<closure_param> c:S<"|"> d:closure_tail
+    { node!("expr_closure", a, b, c, d.0, d.1) }
+
+closure_param -> Elem<'input> =
+    a:pattern b:opt<type_bound>
+    { node!("closure_param", a, b) }
+
+closure_tail -> (Elem<'input>, Elem<'input>) =
+    a:opt<fn_return_type> b:block
+    { (a, b) }
+    /
+    a:empty b:expr<(true)>
+    { (a, b) }
 
 empty -> Elem<'input> = { node!("empty") }
 
@@ -491,10 +543,14 @@ IdentLiteral -> &'input str =
     $([a-zA-Z_] [a-zA-Z0-9_]*)
 
 lifetime -> Elem<'input> =
-    a:Lifetime
+    a:Label
     { node!("lifetime", a) }
 
-Lifetime -> Elem<'input> =
+label -> Elem<'input> =
+    a:Label
+    { node!("iabel", a) }
+
+Label -> Elem<'input> =
     T<"'" IdentLiteral>
 
 // Literals

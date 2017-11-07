@@ -66,8 +66,17 @@ parse! {
     expr expr_if { if true { 1 } else { 2 } }
     expr expr_match {
         match *foo {
-            Some(x) => x,
+            Some(x) if x > 0 => x,
+            Some(_) => { 0 }
             None => return,
+        }
+    }
+    expr if_match {
+        if match *foo {
+            Some(y) if Bar {}.is_empty() => y,
+        }
+        {
+            // then
         }
     }
 
