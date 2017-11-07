@@ -115,13 +115,90 @@ fn_return_type -> Elem<'input> =
     a:S<"->"> b:type_name
     { node!("fn_return_type", a, b) }
 
-pattern -> Elem<'input> =
+pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>
     { node!("pattern", a, b) }
 
 pattern0 -> Elem<'input> =
-    expr_path
-    // TOOD
+    pattern_literal /
+    pattern_bind /
+    pattern_tuple /
+    pattern_path /
+    pattern_ref /
+    pattern_qual
+
+pattern_follow<head, tail> =
+    head:head tail:tail?
+    {
+        if let Some((kind, elems)) = tail {
+            node_vec(kind, prepend(head, elems))
+        } else {
+            head
+        }
+    }
+
+pattern_literal -> Elem<'input> =
+    pattern_follow<literal, pattern_range>
+
+pattern_range -> (&'static str, Vec<Elem<'input>>) =
+    a:S<Range> b:(literal / expr_path)
+    { ("pattern_range", vec![a, b]) }
+
+literal -> Elem<'input> =
+    integer /
+    float /
+    string
+
+pattern_ref -> Elem<'input> =
+    a:S<"&"> b:pattern
+    { node!("pattern_ref", a, b) }
+
+pattern_bind -> Elem<'input> =
+    a:K<"ref"> b:Ident c:opt<pattern_at>
+    { node!("pattern_bind", a, b, c) }
+    /
+    a:Ident b:pattern_at
+    { node!("pattern_bind", node!("empty"), a, b) }
+
+pattern_at -> Elem<'input> =
+    a:S<"@"> b:pattern
+    { node!("pattern_at", a, b) }
+
+pattern_tuple -> Elem<'input> =
+    a:S<"("> b:opt<csep_tuple<pattern>> c:S<")">
+    { node!("pattern_tuple", a, b, c) }
+
+pattern_path -> Elem<'input> =
+    pattern_follow<expr_path, pattern_path_tail>
+
+pattern_path_tail -> (&'static str, Vec<Elem<'input>>) =
+    a:(pattern_struct_tuple / pattern_struct_named)
+    { ("pattern_struct", vec![ a ]) }
+    /
+    pattern_range
+
+pattern_struct_tuple -> Elem<'input> =
+    a:S<"("> b:csep<pattern> c:S<")">
+    { node!("pattern_struct_tuple", a, b, c) }
+
+pattern_struct_named -> Elem<'input> =
+    a:S<"{"> b:csep<pattern_struct_field> c:S<"}">
+    { node!("pattern_struct_named", a, b, c) }
+
+pattern_struct_field -> Elem<'input> =
+    a:K<"ref"> b:Ident
+    { node!("pattern_struct_field", a, b, node!("empty")) }
+    /
+    a:Ident b:opt<pattern_struct_field_pat>
+    { node!("pattern_struct_field", node!("empty"), a, b) }
+
+pattern_struct_field_pat -> Elem<'input> =
+    a:S<":"> b:pattern
+    { node!("pattern_struct_field_pat", a, b) }
+
+pattern_qual -> Elem<'input> =
+    a:expr_qual
+    { node!("pattern_qual", a) }
 
 block -> Elem<'input> =
     a:S<"{"> b:list<stmt> c:opt<expr> d:S<"}">
