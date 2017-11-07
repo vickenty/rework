@@ -145,8 +145,9 @@ pattern_range -> (&'static str, Vec<Elem<'input>>) =
     { ("pattern_range", vec![a, b]) }
 
 literal -> Elem<'input> =
-    integer /
     float /
+    integer /
+    char /
     string
 
 pattern_ref -> Elem<'input> =
@@ -406,9 +407,7 @@ expr_field -> (&'static str, Vec<Elem<'input>>) =
     { ("expr_field", vec![a, b]) }
 
 expr_prim -> Elem<'input> =
-    float /
-    integer /
-    string /
+    literal /
     block /
     expr_loop /
     expr_for /
@@ -671,19 +670,33 @@ FloatingExp =
 
 FloatingSuffix = "f32" / "f64"
 
+char -> Elem<'input> =
+    a:T<"b"?> b:T_nows<[']> c:T_nows<([^'\\] / StringEscape)*> d:T_nows<[']>
+    {
+        let kind = if a.text() == Some("b") { "char_byte" } else { "char" };
+        node!(kind, a, b, c, d)
+    }
+
 string -> Elem<'input> =
-    a:T<StringLiteral>
-    { node!("string", a) }
-    /
-    raw_string
+    string_normal /
+    string_raw
 
-StringLiteral =
-    // FIXME
-    "\"" [^"] "\""
+string_normal -> Elem<'input> =
+    a:T<"b"?> b:T_nows<["]> c:T_nows<([^"\\] / StringEscape)*> d:T_nows<["]>
+    {
+        let kind = if a.text() == Some("b") { "string_byte" } else { "string" };
+        node!(kind, a, b, c, d)
+    }
 
-raw_string -> Elem<'input> =
-    p:$(_) a:$("r" "#"* ["]) b:$(([^"] / ["] !( "#"*<{a.len()-2}> ))*) c:$( ["] "#"*<{a.len()-2}> )
-    { node!("raw_string", text(p, a), text("", b), text("", c)) }
+StringEscape =
+    "\\" (["'nrt0\\\n] / "x" Hex Hex / "u{" Hex+ "}")
+
+string_raw -> Elem<'input> =
+    a:T<"b"?> b:$("r" "#"* ["]) c:T_nows<([^"] / ["] !( "#"*<{b.len()-2}> ))*> d:T_nows<["] "#"*<{b.len()-2}>>
+    {
+        let kind = if a.text() == Some("b") { "string_byte_raw" } else { "string_raw" };
+        node!(kind, a, text("", b), c, d)
+    }
 
 // Separated lists
 sep_list0<ex, sep> =
