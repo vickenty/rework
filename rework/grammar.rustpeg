@@ -261,7 +261,7 @@ pattern_at -> Elem<'input> =
     { node!("pattern_at", a, b) }
 
 pattern_tuple -> Elem<'input> =
-    a:S<"("> b:opt<csep_tuple<pattern>> c:S<")">
+    a:S<"("> b:opt<csep_tuple<pattern / S<"..">> / S<"..">> c:S<")">
     { node!("pattern_tuple", a, b, c) }
 
 pattern_path -> Elem<'input> =
@@ -274,19 +274,22 @@ pattern_path_tail -> (&'static str, Vec<Elem<'input>>) =
     pattern_range
 
 pattern_struct_tuple -> Elem<'input> =
-    a:S<"("> b:csep<pattern> c:S<")">
+    a:S<"("> b:csep<pattern / S<"..">> c:S<")">
     { node!("pattern_struct_tuple", a, b, c) }
 
 pattern_struct_named -> Elem<'input> =
     a:S<"{"> b:csep<pattern_struct_field> c:S<"}">
     { node!("pattern_struct_named", a, b, c) }
 
+// Unlike rustc, accepts splat in any position and allows trailing comma after '..'
 pattern_struct_field -> Elem<'input> =
     a:K<"ref"> b:Ident
     { node!("pattern_struct_field", a, b, node!("empty")) }
     /
     a:Ident b:opt<pattern_struct_field_pat>
     { node!("pattern_struct_field", node!("empty"), a, b) }
+    /
+    S<"..">
 
 pattern_struct_field_pat -> Elem<'input> =
     a:S<":"> b:pattern
