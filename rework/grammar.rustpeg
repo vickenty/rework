@@ -18,7 +18,8 @@ item_inner -> Elem<'input> =
     item_fn /
     item_macro_rules /
     item_impl /
-    item_const
+    item_const /
+    item_macro
 
 item_use -> Elem<'input> =
     a:K<"use"> b:S<[^;]+> c:S<";">
@@ -130,6 +131,15 @@ macro_expr_inner -> Elem<'input> =
     macro_expr_var /
     macro_token< () >
 
+macro_arg -> Elem<'input> =
+    a:macro_arg_inner*
+    { node_vec("macro_arg", a) }
+
+macro_arg_inner -> Elem<'input> =
+    macro_group<macro_arg> /
+    literal /
+    macro_token< () >
+
 macro_expr_var -> Elem<'input> =
     a:T<"$" ident>
     { node!("macro_expr_var", a) }
@@ -191,6 +201,21 @@ item_const -> Elem<'input> =
     a:K<"const"> b:pattern c:S<"="> d:expr<(true)> e:S<";">
     { node!("item_const", a, b, c, d, e) }
 
+// Unlike rustc, accepts type arguments at module level
+item_macro -> Elem<'input> =
+    a:path<S<"::">> b:S<"!"> c:item_macro_tail
+    { node_vec("item_macro", prepend(a, prepend(b, c))) }
+
+item_macro_tail -> Vec<Elem<'input>> =
+    a:S<"{"> b:macro_arg c:S<"}">
+    { vec!(a, b, c, node!("empty")) }
+    /
+    a:S<"["> b:macro_arg c:S<"]"> d:S<";">
+    { vec!(a, b, c, d) }
+    /
+    a:S<"("> b:macro_arg c:S<")"> d:S<";">
+    { vec!(a, b, c, d) }
+
 pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>
     { node!("pattern", a, b) }
@@ -203,7 +228,7 @@ pattern0 -> Elem<'input> =
     pattern_ref /
     pattern_qual
 
-pattern_follow<head, tail> =
+follow<head, tail> =
     head:head tail:tail?
     {
         if let Some((kind, elems)) = tail {
@@ -214,7 +239,7 @@ pattern_follow<head, tail> =
     }
 
 pattern_literal -> Elem<'input> =
-    pattern_follow<literal, pattern_range>
+    follow<literal, pattern_range>
 
 pattern_range -> (&'static str, Vec<Elem<'input>>) =
     a:S<Range> b:(literal / path<S<"::">>)
@@ -253,7 +278,7 @@ pattern_tuple -> Elem<'input> =
     { node!("pattern_tuple", a, b, c) }
 
 pattern_path -> Elem<'input> =
-    pattern_follow<path<S<"::">>, pattern_path_tail>
+    follow<path<S<"::">>, pattern_path_tail>
 
 pattern_path_tail -> (&'static str, Vec<Elem<'input>>) =
     a:(pattern_struct_tuple / pattern_struct_named)
@@ -288,6 +313,7 @@ block -> Elem<'input> =
     { node!("block", a, b, c, d) }
 
 stmt -> Elem<'input> =
+    item_macro /
     stmt_let /
     stmt_expr
 
@@ -517,7 +543,7 @@ expr_prim -> Elem<'input> =
     expr_break /
     expr_block_like /
     expr_closure /
-    expr_struct /
+    expr_path /
     expr_qual /
     expr_array /
     expr_tuple /
@@ -530,19 +556,16 @@ expr_block_like -> Elem<'input> =
     expr_if /
     expr_match
 
-expr_struct -> Elem<'input> =
-    a:path<S<"::">> b:expr_struct_ctor?
-    {
-        if let Some(b) = b {
-            node!("expr_struct", a, b)
-        } else {
-            a
-        }
-    }
+expr_path -> Elem<'input> =
+    follow<path<S<"::">>, expr_path_tail>
 
-expr_struct_ctor -> Elem<'input> =
+expr_path_tail -> (&'static str, Vec<Elem<'input>>) =
+    expr_struct /
+    expr_macro
+
+expr_struct -> (&'static str, Vec<Elem<'input>>) =
     &struct_ctor_allowed a:S<"{"> b:csep<struct_ctor_field> c:S<"}">
-    { node!("struct_ctor", a, b, c) }
+    { ("expr_struct", vec![ a, b, c ]) }
 
 struct_ctor_allowed =
     {?
@@ -560,6 +583,10 @@ struct_ctor_field -> Elem<'input> =
 struct_ctor_value -> Elem<'input> =
     a:S<":"> b:expr
     { node!("struct_ctor_value", a, b) }
+
+expr_macro -> (&'static str, Vec<Elem<'input>>) =
+    a:S<"!"> b:macro_group<macro_arg>
+    { ("expr_macro", vec![ a, b ]) }
 
 path<args_prefix> =
     a:path_elem<opt<S<"::">>, args_prefix> b:path_elem<S<"::">, args_prefix>*

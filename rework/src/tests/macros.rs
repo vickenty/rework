@@ -23,4 +23,22 @@ parse! {
     item space {
         macro_rules ! foo { () => {} }
     }
+
+    item call_as_block {
+        fn foo() {
+            block! { foo, bar }
+            baz
+        }
+    }
+
+    item call_as_expr {
+        fn foo() {
+            println!("foo");
+            bar
+        }
+    }
+}
+
+parse! {
+    expr macro_lit { foo!("abc" 14) } => { (.. {:text="abc"}) (.. {:text="14"}) }
 }
