@@ -1,6 +1,8 @@
 parse! {
+    type_name simple { T }
     type_name array1 { [u8; 10] }
     type_name array2 { [u8; std::u8::MAX as usize] }
+    type_name ref_named { &T }
     type_name ref_slice_u8 { &'a [u8] }
     type_name mut_slice_u8 { &mut [u8] }
     type_name mut_a_slice_u8 { &'a mut [u8] }
@@ -24,6 +26,7 @@ parse! {
     type_name trait_obj2 { Copy + 'foo + Send }
     type_name trait_obj3 { Copy + }
     type_name trait_obj4 { Copy + 'foo + }
+    type_name trait_obj_fn { &FnMut(&u8) }
     type_name impl_trait { impl Iterator<Item=Box<'x>> }
     type_name never_type { ! }
     type_name fn_trait1 { FnMut() }
