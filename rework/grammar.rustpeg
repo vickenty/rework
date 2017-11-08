@@ -657,7 +657,7 @@ expr_if -> Elem<'input> =
     { node!("expr_if", a, b, c, d) }
 
 expr_if_else -> Elem<'input> =
-    a:K<"else"> b:block
+    a:K<"else"> b:(expr_if / block)
     { node!("expr_if_else", a, b) }
 
 expr_return -> Elem<'input> =

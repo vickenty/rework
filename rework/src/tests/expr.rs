@@ -63,7 +63,9 @@ parse! {
     expr cast1 { 1 as f32 }
     expr cast2 { foo as (Foo + 'b) }
 
-    expr expr_if { if true { 1 } else { 2 } }
+    expr expr_if { if true { 1 } }
+    expr if_else { if true { 1 } else { 2 } }
+    expr if_else_if { if true { 1 } else if false { 2 } }
     expr expr_match {
         match *foo {
             Some(x) if x > 0 => x,
