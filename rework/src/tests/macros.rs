@@ -19,4 +19,8 @@ parse! {
             ({:text = $pat:expr}) => ($crate::query::QueryOp::TextEq($pat));
         }
     }
+
+    item space {
+        macro_rules ! foo { () => {} }
+    }
 }
