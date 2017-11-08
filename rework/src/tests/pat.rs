@@ -25,7 +25,7 @@ parse! {
     pattern struct_tuple1 { Some(1) }
     pattern struct_tuple2 { foo::Foo("bar", ref x) }
     pattern struct_tuple_splat { Named(x, ..) }
-    pattern struct_named1 { Point::<f32> { x, ref y } }
+    pattern struct_named1 { Point::<f32> { x, ref y, mut z, ref mut w } }
     pattern struct_named2 { ::th::BBox { tl, br: Point { x, y } } }
     pattern struct_named_splat { S { foo, bar, .. } }
     pattern ref_pat { &(a, b) }

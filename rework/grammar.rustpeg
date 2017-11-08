@@ -246,15 +246,19 @@ pattern_ref -> Elem<'input> =
     a:S<"&"> b:pattern
     { node!("pattern_ref", a, b) }
 
+binding<tail1, tail2> =
+    a:K<"ref"> b:opt<K<"mut">> c:Ident d:tail1
+    { node!("binding", a, b, c, d) }
+    /
+    a:K<"mut"> b:Ident c:tail1
+    { node!("binding", node!("empty"), a, b, c) }
+    /
+    a:Ident b:tail2
+    { node!("binding", node!("empty"), node!("empty"), a, b) }
+
 pattern_bind -> Elem<'input> =
-    a:K<"ref"> b:opt<K<"mut">> c:Ident d:opt<pattern_at>
-    { node!("pattern_bind", a, b, c, d) }
-    /
-    a:K<"mut"> b:Ident c:opt<pattern_at>
-    { node!("pattern_bind", node!("empty"), a, b, c) }
-    /
-    a:Ident b:pattern_at
-    { node!("pattern_bind", node!("empty"), node!("empty"), a, b) }
+    a:binding<opt<pattern_at>, pattern_at>
+    { node!("pattern_bind", a) }
 
 pattern_at -> Elem<'input> =
     a:S<"@"> b:pattern
@@ -283,11 +287,7 @@ pattern_struct_named -> Elem<'input> =
 
 // Unlike rustc, accepts splat in any position and allows trailing comma after '..'
 pattern_struct_field -> Elem<'input> =
-    a:K<"ref"> b:Ident
-    { node!("pattern_struct_field", a, b, node!("empty")) }
-    /
-    a:Ident b:opt<pattern_struct_field_pat>
-    { node!("pattern_struct_field", node!("empty"), a, b) }
+    binding<empty, opt<pattern_struct_field_pat>>
     /
     S<"..">
 
