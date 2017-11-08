@@ -7,8 +7,8 @@ pub program -> Elem<'input> =
     { node!("program", a, b) }
 
 pub item -> Elem<'input> =
-    a:list<attribute> b:item_inner
-    { node!("item", a, b) }
+    a:list<attribute> b:opt<K<"pub">> c:item_inner
+    { node!("item", a, b, c) }
 
 item_inner -> Elem<'input> =
     item_use /
@@ -16,15 +16,17 @@ item_inner -> Elem<'input> =
     item_enum /
     item_type /
     item_fn /
-    item_macro_rules
+    item_macro_rules /
+    item_impl /
+    item_const
 
 item_use -> Elem<'input> =
-    a:opt<Pub> b:Use c:S<[^;]+> d:S<";">
-    { node!("item_use", a, b, c, d) }
+    a:Use b:S<[^;]+> c:S<";">
+    { node!("item_use", a, b, c) }
 
 item_struct -> Elem<'input> =
-    a:opt<Pub> b:Struct c:Ident d:opt<type_parameters> e:struct_body
-    { node!("item_struct", a, b, c, d, e) }
+    a:Struct b:Ident c:opt<type_parameters> d:struct_body
+    { node!("item_struct", a, b, c, d) }
 
 struct_body -> Elem<'input> =
     a:tuple_struct_body b:S<";">
@@ -49,8 +51,8 @@ struct_field -> Elem<'input> =
     { node!("struct_field", a, b, c, d) }
 
 item_enum -> Elem<'input> =
-    a:opt<Pub> b:Enum c:Ident d:opt<type_parameters> e:enum_body
-    { node!("item_enum", a, b, c, d, e) }
+    a:Enum b:Ident c:opt<type_parameters> d:enum_body
+    { node!("item_enum", a, b, c, d) }
 
 enum_body -> Elem<'input> =
     a:S<"{"> b:csep<enum_variant> c:S<"}">
@@ -73,8 +75,8 @@ attribute_arguments -> Elem<'input> =
     { node!("attribute_arguments", a, b, c) }
 
 item_type -> Elem<'input> =
-    a:opt<Pub> b:Type c:type_decl d:S<"="> e:type_name f:S<";">
-    { node!("item_type", a, b, c, d, e, f) }
+    a:Type b:type_decl c:S<"="> d:type_name e:S<";">
+    { node!("item_type", a, b, c, d, e) }
 
 item_macro_rules -> Elem<'input> =
     a:K<"macro_rules"> b:S<"!"> c:Ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
@@ -149,8 +151,8 @@ type_bound -> Elem<'input> =
     { node!("type_bound", a, b) }
 
 item_fn -> Elem<'input> =
-    a:opt<Pub> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:fn_signature f:block
-    { node!("item_fn", a, b, c, d, e, f) }
+    a:opt<Unsafe> b:opt<fn_abi> c:Fn d:fn_signature e:block
+    { node!("item_fn", a, b, c, d, e) }
 
 fn_abi -> Elem<'input> =
     a:Extern b:opt<string>
@@ -167,6 +169,43 @@ fn_parameters<param> =
 fn_return_type -> Elem<'input> =
     a:S<"->"> b:type_name
     { node!("fn_return_type", a, b) }
+
+item_impl -> Elem<'input> =
+    a:impl_flags b:K<"impl"> c:opt<type_parameters> d:impl_type e:opt<impl_for> f:impl_block
+    { node!("item_impl", a, b, c, d, e, f) }
+
+impl_flags -> Elem<'input> =
+    a:opt<K<"default">> b:opt<K<"unsafe">>
+    { node!("impl_flags", a, b) }
+
+impl_type -> Elem<'input> =
+    a:type_path b:opt<impl_for>
+    { node!("impl_type", a, b) }
+
+impl_for -> Elem<'input> =
+    a:K<"for"> b:type_path
+    { node!("impl_for", a, b) }
+
+impl_block -> Elem<'input> =
+    a:S<"{"> b:list<impl_item> c:S<"}">
+    { node!("impl_block", a, b, c) }
+
+impl_item -> Elem<'input> =
+    a:list<attribute> b:impl_item_flags c:impl_item_inner
+    { node!("impl_item", a, b, c) }
+
+impl_item_flags -> Elem<'input> =
+    a:opt<K<"pub">> b:opt<K<"default">>
+    { node!("impl_item_flags", a, b) }
+
+impl_item_inner -> Elem<'input> =
+    item_const /
+    item_type /
+    item_fn
+
+item_const -> Elem<'input> =
+    a:K<"const"> b:pattern c:S<"="> d:expr<(true)> e:S<";">
+    { node!("item_const", a, b, c, d, e) }
 
 pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>
