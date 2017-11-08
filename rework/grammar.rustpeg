@@ -6,7 +6,11 @@ pub program -> Elem<'input> =
     a:list<item> b:Ws
     { node!("program", a, b) }
 
-item -> Elem<'input> =
+pub item -> Elem<'input> =
+    a:list<attribute> b:item_inner
+    { node!("item", a, b) }
+
+item_inner -> Elem<'input> =
     item_use /
     item_struct /
     item_enum /
@@ -18,8 +22,8 @@ item_use -> Elem<'input> =
     { node!("item_use", a, b, c, d) }
 
 item_struct -> Elem<'input> =
-    a:list<attribute> b:opt<Pub> c:Struct d:Ident e:opt<type_parameters> f:struct_body
-    { node!("item_struct", a, b, c, d, e, f) }
+    a:opt<Pub> b:Struct c:Ident d:opt<type_parameters> e:struct_body
+    { node!("item_struct", a, b, c, d, e) }
 
 struct_body -> Elem<'input> =
     a:tuple_struct_body b:S<";">
@@ -44,8 +48,8 @@ struct_field -> Elem<'input> =
     { node!("struct_field", a, b, c, d) }
 
 item_enum -> Elem<'input> =
-    a:list<attribute> b:opt<Pub> c:Enum d:Ident e:opt<type_parameters> f:enum_body
-    { node!("item_enum", a, b, c, d, e, f) }
+    a:opt<Pub> b:Enum c:Ident d:opt<type_parameters> e:enum_body
+    { node!("item_enum", a, b, c, d, e) }
 
 enum_body -> Elem<'input> =
     a:S<"{"> b:csep<enum_variant> c:S<"}">
