@@ -208,11 +208,14 @@ pattern_ref -> Elem<'input> =
     { node!("pattern_ref", a, b) }
 
 pattern_bind -> Elem<'input> =
-    a:K<"ref"> b:Ident c:opt<pattern_at>
-    { node!("pattern_bind", a, b, c) }
+    a:K<"ref"> b:opt<K<"mut">> c:Ident d:opt<pattern_at>
+    { node!("pattern_bind", a, b, c, d) }
+    /
+    a:K<"mut"> b:Ident c:opt<pattern_at>
+    { node!("pattern_bind", node!("empty"), a, b, c) }
     /
     a:Ident b:pattern_at
-    { node!("pattern_bind", node!("empty"), a, b) }
+    { node!("pattern_bind", node!("empty"), node!("empty"), a, b) }
 
 pattern_at -> Elem<'input> =
     a:S<"@"> b:pattern

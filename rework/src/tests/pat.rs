@@ -3,7 +3,9 @@ parse! {
     pattern const_str { "foo" }
 
     pattern bind_var { x }
+    pattern bind_mut { mut y }
     pattern bind_ref { ref z }
+    pattern bind_ref_mut { ref mut foo }
     pattern bind_at { x @ Some(_) }
 
     pattern range_int { 1...10 }
