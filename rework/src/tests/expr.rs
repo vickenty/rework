@@ -67,6 +67,7 @@ parse! {
     expr expr_match {
         match *foo {
             Some(x) if x > 0 => x,
+            Some(1) | Some(2) => { 1 },
             Some(_) => { 0 }
             None => return,
         }

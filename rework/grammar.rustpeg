@@ -598,7 +598,7 @@ expr_match -> Elem<'input> =
     { node!("expr_match", a, b, c, d, e) }
 
 match_case -> Elem<'input> =
-    a:pattern b:opt<match_guard> c:S<"=>"> d:match_value
+    a:sep_list1<pattern, S<"|">> b:opt<match_guard> c:S<"=>"> d:match_value
     { node!("match_case", a, b, c, d.0, d.1) }
 
 match_guard -> Elem<'input> =
