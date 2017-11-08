@@ -217,7 +217,7 @@ pattern_literal -> Elem<'input> =
     pattern_follow<literal, pattern_range>
 
 pattern_range -> (&'static str, Vec<Elem<'input>>) =
-    a:S<Range> b:(literal / expr_path)
+    a:S<Range> b:(literal / path<S<"::">>)
     { ("pattern_range", vec![a, b]) }
 
 literal -> Elem<'input> =
@@ -253,7 +253,7 @@ pattern_tuple -> Elem<'input> =
     { node!("pattern_tuple", a, b, c) }
 
 pattern_path -> Elem<'input> =
-    pattern_follow<expr_path, pattern_path_tail>
+    pattern_follow<path<S<"::">>, pattern_path_tail>
 
 pattern_path_tail -> (&'static str, Vec<Elem<'input>>) =
     a:(pattern_struct_tuple / pattern_struct_named)
@@ -325,16 +325,8 @@ type_prim -> Elem<'input> =
     type_group
 
 type_path -> Elem<'input> =
-    a:opt<type_late_lifetime> b:type_path_list
+    a:opt<type_late_lifetime> b:path<empty>
     { node!("type_path", a, b) }
-
-type_path_list -> Elem<'input> =
-    a:type_path_elem<opt<S<"::">>> b:type_path_elem<S<"::">>*
-    { node_vec("type_path_list", prepend(a, b)) }
-
-type_path_elem<prefix> =
-    a:prefix b:ident c:opt<type_arguments<empty>>
-    { node!("type_path_elem", a, b, c) }
 
 type_arguments<prefix> =
     a:prefix b:S<"<"> c:csep<type_assoc / type_name / lifetime> d:S<">">
@@ -365,7 +357,7 @@ type_ptr -> Elem<'input> =
     { node!("type_ptr", a, b, c) }
 
 type_as -> Elem<'input> =
-    a:type_as_body b:type_path_elem<S<"::">>+
+    a:type_as_body b:path_elem<S<"::">, empty>+
     { node_vec("type_as", prepend(a, b)) }
 
 type_as_body -> Elem<'input> =
@@ -539,7 +531,7 @@ expr_block_like -> Elem<'input> =
     expr_match
 
 expr_struct -> Elem<'input> =
-    a:expr_path b:expr_struct_ctor?
+    a:path<S<"::">> b:expr_struct_ctor?
     {
         if let Some(b) = b {
             node!("expr_struct", a, b)
@@ -569,16 +561,16 @@ struct_ctor_value -> Elem<'input> =
     a:S<":"> b:expr
     { node!("struct_ctor_value", a, b) }
 
-expr_path -> Elem<'input> =
-    a:expr_path_elem<opt<S<"::">>> b:expr_path_elem<S<"::">>*
-    { node_vec("expr_path", prepend(a, b)) }
+path<args_prefix> =
+    a:path_elem<opt<S<"::">>, args_prefix> b:path_elem<S<"::">, args_prefix>*
+    { node_vec("path", prepend(a, b)) }
 
-expr_path_elem<prefix> =
-    a:prefix b:ident c:opt<type_arguments<S<"::">>>
+path_elem<elem_prefix, args_prefix> =
+    a:elem_prefix b:ident c:opt<type_arguments<args_prefix>>
     { node!("path_elem", a, b, c) }
 
 expr_qual -> Elem<'input> =
-    a:type_as_body b:expr_path_elem<S<"::">>+
+    a:type_as_body b:path_elem<S<"::">, S<"::">>+
     { node_vec("expr_qual", prepend(a, b)) }
 
 expr_array -> Elem<'input> =
