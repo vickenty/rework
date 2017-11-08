@@ -64,8 +64,8 @@ enum_variant_body -> Elem<'input> =
     named_struct_body
 
 attribute -> Elem<'input> =
-     a:S<"#["> b:Ident c:opt<attribute_arguments> d:S<"]">
-     { node!("attribute", a, b, c, d) }
+     a:S<"#"> b:S<"["> c:Ident d:opt<attribute_arguments> e:S<"]">
+     { node!("attribute", a, b, c, d, e) }
 
 attribute_arguments -> Elem<'input> =
     a:S<"("> b:csep<Ident> c:S<")">
