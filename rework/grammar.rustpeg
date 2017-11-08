@@ -25,7 +25,7 @@ item_use -> Elem<'input> =
     { node!("item_use", a, b, c) }
 
 item_struct -> Elem<'input> =
-    a:K<"struct"> b:Ident c:opt<type_parameters> d:struct_body
+    a:K<"struct"> b:ident c:opt<type_parameters> d:struct_body
     { node!("item_struct", a, b, c, d) }
 
 struct_body -> Elem<'input> =
@@ -47,11 +47,11 @@ named_struct_body -> Elem<'input> =
     { node!("named_struct_body", a, b, c) }
 
 struct_field -> Elem<'input> =
-    a:opt<K<"pub">> b:Ident c:S<":"> d:type_name
+    a:opt<K<"pub">> b:ident c:S<":"> d:type_name
     { node!("struct_field", a, b, c, d) }
 
 item_enum -> Elem<'input> =
-    a:K<"enum"> b:Ident c:opt<type_parameters> d:enum_body
+    a:K<"enum"> b:ident c:opt<type_parameters> d:enum_body
     { node!("item_enum", a, b, c, d) }
 
 enum_body -> Elem<'input> =
@@ -59,7 +59,7 @@ enum_body -> Elem<'input> =
     { node!("enum_body", a, b, c) }
 
 enum_variant -> Elem<'input> =
-    a:Ident b:opt<enum_variant_body>
+    a:ident b:opt<enum_variant_body>
     { node!("variant", a, b) }
 
 enum_variant_body -> Elem<'input> =
@@ -67,11 +67,11 @@ enum_variant_body -> Elem<'input> =
     named_struct_body
 
 attribute -> Elem<'input> =
-     a:S<"#"> b:S<"["> c:Ident d:opt<attribute_arguments> e:S<"]">
+     a:S<"#"> b:S<"["> c:ident d:opt<attribute_arguments> e:S<"]">
      { node!("attribute", a, b, c, d, e) }
 
 attribute_arguments -> Elem<'input> =
-    a:S<"("> b:csep<Ident> c:S<")">
+    a:S<"("> b:csep<ident> c:S<")">
     { node!("attribute_arguments", a, b, c) }
 
 item_type -> Elem<'input> =
@@ -79,7 +79,7 @@ item_type -> Elem<'input> =
     { node!("item_type", a, b, c, d, e) }
 
 item_macro_rules -> Elem<'input> =
-    a:K<"macro_rules"> b:S<"!"> c:Ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
+    a:K<"macro_rules"> b:S<"!"> c:ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
     { node!("item_macro_rules", a, b, c, d, e, f) }
 
 macro_rules_case -> Elem<'input> =
@@ -111,11 +111,11 @@ macro_repeat<inner> =
     { node!("macro_repeat", a, b, c, d) }
 
 macro_match_var -> Elem<'input> =
-    a:T<"$"> b:Ident c:S<":"> d:Ident
+    a:T<"$"> b:ident c:S<":"> d:ident
     { node!("macro_match_var", a, b, c, d) }
 
 macro_token<guard> =
-    guard a:T<Ident / Ops / [^)}\]]>
+    guard a:T<ident / Ops / [^)}\]]>
     { a }
 
 Ops = Assign / Range / "<-" / "->" / "=>" / ">>" / "<<"
@@ -131,11 +131,11 @@ macro_expr_inner -> Elem<'input> =
     macro_token< () >
 
 macro_expr_var -> Elem<'input> =
-    a:T<"$" Ident>
+    a:T<"$" ident>
     { node!("macro_expr_var", a) }
 
 type_decl -> Elem<'input> =
-    a:Ident b:opt<type_parameters>
+    a:ident b:opt<type_parameters>
     { node!("type_decl", a, b) }
 
 type_parameters -> Elem<'input> =
@@ -143,7 +143,7 @@ type_parameters -> Elem<'input> =
     { node!("type_parameters", a, b, c) }
 
 type_parameter -> Elem<'input> =
-    a:(lifetime / Ident) b:opt<type_bound>
+    a:(lifetime / ident) b:opt<type_bound>
     { node!("type_parameter", a, b) }
 
 type_bound -> Elem<'input> =
@@ -159,7 +159,7 @@ fn_abi -> Elem<'input> =
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
-    a:Ident b:opt<type_parameters> c:fn_parameters<pattern> d:opt<fn_return_type>
+    a:ident b:opt<type_parameters> c:fn_parameters<pattern> d:opt<fn_return_type>
     { node!("fn_signature", a, b, c, d) }
 
 fn_parameters<param> =
@@ -247,13 +247,13 @@ pattern_ref -> Elem<'input> =
     { node!("pattern_ref", a, b) }
 
 binding<tail1, tail2> =
-    a:K<"ref"> b:opt<K<"mut">> c:Ident d:tail1
+    a:K<"ref"> b:opt<K<"mut">> c:ident d:tail1
     { node!("binding", a, b, c, d) }
     /
-    a:K<"mut"> b:Ident c:tail1
+    a:K<"mut"> b:ident c:tail1
     { node!("binding", node!("empty"), a, b, c) }
     /
-    a:Ident b:tail2
+    a:ident b:tail2
     { node!("binding", node!("empty"), node!("empty"), a, b) }
 
 pattern_bind -> Elem<'input> =
@@ -349,7 +349,7 @@ type_path_list -> Elem<'input> =
     { node_vec("type_path_list", prepend(a, b)) }
 
 type_path_elem<prefix> =
-    a:prefix b:Ident c:opt<type_arguments<empty>>
+    a:prefix b:ident c:opt<type_arguments<empty>>
     { node!("type_path_elem", a, b, c) }
 
 type_arguments<prefix> =
@@ -357,7 +357,7 @@ type_arguments<prefix> =
     { node!("type_arguments", a, b, c, d) }
 
 type_assoc -> Elem<'input> =
-    a:Ident b:S<"="> c:type_name
+    a:ident b:S<"="> c:type_name
     { node!("type_assoc", a, b, c) }
 
 type_slice -> Elem<'input> =
@@ -413,7 +413,7 @@ type_fn_param -> Elem<'input> =
     { node!("type_fn_param", a, b) }
 
 type_fn_param_name -> Elem<'input> =
-    a:Ident b:S<":">
+    a:ident b:S<":">
     { node!("type_fn_param_name", a, b) }
 
 type_never -> Elem<'input> =
@@ -511,7 +511,7 @@ expr_call -> (&'static str, Vec<Elem<'input>>) =
     { ("expr_call", vec![a, b, c]) }
 
 expr_field -> (&'static str, Vec<Elem<'input>>) =
-    a:S<"."> b:(T<IntegerDec> / Ident)
+    a:S<"."> b:(T<IntegerDec> / ident)
     { ("expr_field", vec![a, b]) }
 
 expr_prim -> Elem<'input> =
@@ -558,7 +558,7 @@ struct_ctor_allowed =
     }
 
 struct_ctor_field -> Elem<'input> =
-    a:Ident b:opt<struct_ctor_value>
+    a:ident b:opt<struct_ctor_value>
     { node!("struct_ctor_field", a, b) }
 
 struct_ctor_value -> Elem<'input> =
@@ -570,7 +570,7 @@ expr_path -> Elem<'input> =
     { node_vec("expr_path", prepend(a, b)) }
 
 expr_path_elem<prefix> =
-    a:prefix b:Ident c:opt<type_arguments<S<"::">>>
+    a:prefix b:ident c:opt<type_arguments<S<"::">>>
     { node!("path_elem", a, b, c) }
 
 expr_qual -> Elem<'input> =
@@ -700,10 +700,10 @@ K<ex> = p:$(_) t:$(ex) ![a-zA-Z0-9_] {
     text(p, t)
 }
 
-
 // Identifiers
-Ident -> Elem<'input> =
-    T<IdentLiteral>
+ident -> Elem<'input> =
+    a:T<IdentLiteral>
+    { node!("ident", a) }
 
 IdentLiteral -> &'input str =
     $([a-zA-Z_] [a-zA-Z0-9_]*)
