@@ -25,8 +25,8 @@ item_use -> Elem<'input> =
     { node!("item_use", a, b, c) }
 
 item_struct -> Elem<'input> =
-    a:K<"struct"> b:ident c:opt<type_parameters> d:struct_body
-    { node!("item_struct", a, b, c, d) }
+    a:K<"struct"> b:ident c:opt<type_parameters> d:opt<where_block> e:struct_body
+    { node!("item_struct", a, b, c, d, e) }
 
 struct_body -> Elem<'input> =
     a:tuple_struct_body b:S<";">
@@ -51,8 +51,8 @@ struct_field -> Elem<'input> =
     { node!("struct_field", a, b, c, d) }
 
 item_enum -> Elem<'input> =
-    a:K<"enum"> b:ident c:opt<type_parameters> d:enum_body
-    { node!("item_enum", a, b, c, d) }
+    a:K<"enum"> b:ident c:opt<type_parameters> d:opt<where_block> e:enum_body
+    { node!("item_enum", a, b, c, d, e) }
 
 enum_body -> Elem<'input> =
     a:S<"{"> b:csep<enum_variant> c:S<"}">
@@ -75,8 +75,8 @@ attribute_arguments -> Elem<'input> =
     { node!("attribute_arguments", a, b, c) }
 
 item_type -> Elem<'input> =
-    a:K<"type"> b:type_decl c:S<"="> d:type_name e:S<";">
-    { node!("item_type", a, b, c, d, e) }
+    a:K<"type"> b:type_decl c:opt<where_block> d:S<"="> e:type_name f:S<";">
+    { node!("item_type", a, b, c, d, e, f) }
 
 item_macro_rules -> Elem<'input> =
     a:K<"macro_rules"> b:S<"!"> c:ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
@@ -159,8 +159,8 @@ fn_abi -> Elem<'input> =
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
-    a:ident b:opt<type_parameters> c:fn_parameters<pattern> d:opt<fn_return_type>
-    { node!("fn_signature", a, b, c, d) }
+    a:ident b:opt<type_parameters> c:fn_parameters<pattern> d:opt<fn_return_type> e:opt<where_block>
+    { node!("fn_signature", a, b, c, d, e) }
 
 fn_parameters<param> =
     a:S<"("> b:csep<param> c:S<")">
@@ -428,6 +428,14 @@ type_fn_trait -> Elem<'input> =
     { node!("type_fn_trait", a, b, c) }
 
 FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
+
+where_block -> Elem<'input> =
+    a:K<"where"> b:csep<where_clause>
+    { node!("where_block", a, b) }
+
+where_clause -> Elem<'input> =
+    a:type_name b:S<":"> c:type_name
+    { node!("where_clause", a, b, c) }
 
 pub expr -> Elem<'input> =
     a:expr_inner
