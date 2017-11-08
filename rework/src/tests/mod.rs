@@ -72,5 +72,5 @@ mod type_name;
 mod expr;
 mod pat;
 mod macros;
-mod func;
+mod fns;
 mod impls;
