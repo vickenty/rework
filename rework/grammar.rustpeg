@@ -522,7 +522,8 @@ expr_suffix -> Elem<'input> =
 expr_suffix_tail -> (&'static str, Vec<Elem<'input>>) =
     expr_index /
     expr_call /
-    expr_field
+    expr_field /
+    expr_try
 
 expr_index -> (&'static str, Vec<Elem<'input>>) =
     a:S<"["> b:expr_inner c:S<"]">
@@ -535,6 +536,10 @@ expr_call -> (&'static str, Vec<Elem<'input>>) =
 expr_field -> (&'static str, Vec<Elem<'input>>) =
     a:S<"."> b:(T<IntegerDec> / ident)
     { ("expr_field", vec![a, b]) }
+
+expr_try -> (&'static str, Vec<Elem<'input>>) =
+    a:S<"?">
+    { ("expr_try", vec![a]) }
 
 expr_prim -> Elem<'input> =
     literal /

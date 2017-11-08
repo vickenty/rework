@@ -126,6 +126,9 @@ parse! {
     expr call4 { <Foo as Box<u8>>::bar(ook) }
     expr call5 { mem::size_of::<u8>() }
     expr call6 { ()() }
+
+    expr try { foo? }
+    expr try_chain { foo()?.bar[1]? + baz()? }
 }
 
 parse! {
