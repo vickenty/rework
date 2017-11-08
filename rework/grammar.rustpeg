@@ -75,8 +75,8 @@ attribute_arguments -> Elem<'input> =
     { node!("attribute_arguments", a, b, c) }
 
 item_type -> Elem<'input> =
-    a:K<"type"> b:type_decl c:opt<where_block> d:S<"="> e:type_name f:S<";">
-    { node!("item_type", a, b, c, d, e, f) }
+    a:K<"type"> b:ident c:opt<type_parameters> d:opt<where_block> e:S<"="> f:type_name g:S<";">
+    { node!("item_type", a, b, c, d, e, f, g) }
 
 item_macro_rules -> Elem<'input> =
     a:K<"macro_rules"> b:S<"!"> c:ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
@@ -133,22 +133,6 @@ macro_expr_inner -> Elem<'input> =
 macro_expr_var -> Elem<'input> =
     a:T<"$" ident>
     { node!("macro_expr_var", a) }
-
-type_decl -> Elem<'input> =
-    a:ident b:opt<type_parameters>
-    { node!("type_decl", a, b) }
-
-type_parameters -> Elem<'input> =
-    a:S<"<"> b:csep<type_parameter> c:S<">">
-    { node!("type_parameters", a, b, c) }
-
-type_parameter -> Elem<'input> =
-    a:(lifetime / ident) b:opt<type_bound>
-    { node!("type_parameter", a, b) }
-
-type_bound -> Elem<'input> =
-    a:S<":"> b:type_name
-    { node!("type_bound", a, b) }
 
 item_fn -> Elem<'input> =
     a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature e:block
@@ -428,6 +412,18 @@ type_fn_trait -> Elem<'input> =
     { node!("type_fn_trait", a, b, c) }
 
 FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
+
+type_parameters -> Elem<'input> =
+    a:S<"<"> b:csep<type_parameter> c:S<">">
+    { node!("type_parameters", a, b, c) }
+
+type_parameter -> Elem<'input> =
+    a:(lifetime / ident) b:opt<type_bound>
+    { node!("type_parameter", a, b) }
+
+type_bound -> Elem<'input> =
+    a:S<":"> b:type_name
+    { node!("type_bound", a, b) }
 
 where_block -> Elem<'input> =
     a:K<"where"> b:csep<where_clause>
