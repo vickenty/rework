@@ -15,7 +15,8 @@ item_inner -> Elem<'input> =
     item_struct /
     item_enum /
     item_type /
-    item_fn
+    item_fn /
+    item_macro_rules
 
 item_use -> Elem<'input> =
     a:opt<Pub> b:Use c:S<[^;]+> d:S<";">
@@ -74,6 +75,62 @@ attribute_arguments -> Elem<'input> =
 item_type -> Elem<'input> =
     a:opt<Pub> b:Type c:type_decl d:S<"="> e:type_name f:S<";">
     { node!("item_type", a, b, c, d, e, f) }
+
+item_macro_rules -> Elem<'input> =
+    a:K<"macro_rules"> b:S<"!"> c:Ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
+    { node!("item_macro_rules", a, b, c, d, e, f) }
+
+macro_rules_case -> Elem<'input> =
+    a:macro_group<macro_match> b:S<"=>"> c:macro_group<macro_expr>
+    { node!("macro_rules_case", a, b, c) }
+
+macro_match -> Elem<'input> =
+    a:macro_match_inner*
+    { node_vec("macro_match", a) }
+
+macro_match_inner -> Elem<'input> =
+    macro_group<macro_match> /
+    macro_repeat<macro_match> /
+    macro_match_var /
+    macro_token< () >
+
+macro_group<inner> =
+    a:S<"("> b:inner c:S<")">
+    { node!("macro_group", a, b, c) }
+    /
+    a:S<"{"> b:inner c:S<"}">
+    { node!("macro_group", a, b, c) }
+    /
+    a:S<"["> b:inner c:S<"]">
+    { node!("macro_group", a, b, c) }
+
+macro_repeat<inner> =
+    a:S<"$("> b:inner c:S<")"> c:opt<macro_token<![+*]>> d:S<[*+]>
+    { node!("macro_repeat", a, b, c, d) }
+
+macro_match_var -> Elem<'input> =
+    a:T<"$"> b:Ident c:S<":"> d:Ident
+    { node!("macro_match_var", a, b, c, d) }
+
+macro_token<guard> =
+    guard a:T<Ident / Ops / [^)}\]]>
+    { a }
+
+Ops = Assign / Range / "<-" / "->" / "=>" / ">>" / "<<"
+
+macro_expr -> Elem<'input> =
+    a:macro_expr_inner*
+    { node_vec("macro_expr", a) }
+
+macro_expr_inner -> Elem<'input> =
+    macro_group<macro_expr> /
+    macro_repeat<macro_expr> /
+    macro_expr_var /
+    macro_token< () >
+
+macro_expr_var -> Elem<'input> =
+    a:T<"$" Ident>
+    { node!("macro_expr_var", a) }
 
 type_decl -> Elem<'input> =
     a:Ident b:opt<type_parameters>
