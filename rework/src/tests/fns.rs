@@ -18,6 +18,9 @@ parse! {
             for bar in foo { }
         }
     }
+
+    item fn_attrib_outside { #[inline] fn foo() {} }
+    item fn_attrib_inside { fn foo() { #![inline] } }
 }
 
 parse! {

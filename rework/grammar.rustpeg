@@ -3,12 +3,16 @@ use syntax::*;
 #![arguments(struct_literal: bool)]
 
 pub program -> Elem<'input> =
-    a:list<item> b:Ws
-    { node!("program", a, b) }
+    a:block_meta b:list<item> c:Ws
+    { node!("program", a, b, c) }
 
 pub item -> Elem<'input> =
-    a:list<attribute> b:opt<K<"pub">> c:item_inner
+    a:item_meta b:opt<K<"pub">> c:item_inner
     { node!("item", a, b, c) }
+
+item_meta -> Elem<'input> =
+    a:list<meta<empty>>
+    { node!("item_meta", a) }
 
 item_inner -> Elem<'input> =
     item_use /
@@ -67,9 +71,13 @@ enum_variant_body -> Elem<'input> =
     tuple_struct_body /
     named_struct_body
 
+meta<insert> =
+     a:S<"#"> b:insert c:S<"["> d:attribute e:S<"]">
+     { node!("meta", a, b, c, d, e) }
+
 attribute -> Elem<'input> =
-     a:S<"#"> b:S<"["> c:ident d:opt<attribute_arguments> e:S<"]">
-     { node!("attribute", a, b, c, d, e) }
+    a:ident b:opt<attribute_arguments>
+    { node!("attribute", a, b) }
 
 attribute_arguments -> Elem<'input> =
     a:S<"("> b:csep<ident> c:S<")">
@@ -185,7 +193,7 @@ impl_block -> Elem<'input> =
     { node!("impl_block", a, b, c) }
 
 impl_item -> Elem<'input> =
-    a:list<attribute> b:impl_item_flags c:impl_item_inner
+    a:item_meta b:impl_item_flags c:impl_item_inner
     { node!("impl_item", a, b, c) }
 
 impl_item_flags -> Elem<'input> =
@@ -309,8 +317,12 @@ pattern_qual -> Elem<'input> =
     { node!("pattern_qual", a) }
 
 block -> Elem<'input> =
-    a:S<"{"> b:list<stmt> c:opt<expr> d:S<"}">
-    { node!("block", a, b, c, d) }
+    a:S<"{"> b:block_meta c:list<stmt> d:opt<expr> e:S<"}">
+    { node!("block", a, b, c, d, e) }
+
+block_meta -> Elem<'input> =
+    a:list<meta<S<"!">>>
+    { node!("block_meta", a) }
 
 stmt -> Elem<'input> =
     item_macro /

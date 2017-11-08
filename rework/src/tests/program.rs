@@ -1,5 +1,6 @@
 parse! {
     program simple1 {
+        #![feature(unstable)]
         #[macro_use]
         use std::io;
         use std::collections::{HashMap, HashSet};
