@@ -141,7 +141,7 @@ type_parameters -> Elem<'input> =
     { node!("type_parameters", a, b, c) }
 
 type_parameter -> Elem<'input> =
-    a:Ident b:opt<type_bound>
+    a:(lifetime / Ident) b:opt<type_bound>
     { node!("type_parameter", a, b) }
 
 type_bound -> Elem<'input> =
@@ -157,20 +157,12 @@ fn_abi -> Elem<'input> =
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
-    a:Ident b:fn_parameters<fn_param_name<pattern>> c:opt<fn_return_type>
-    { node!("fn_signature", a, b, c) }
+    a:Ident b:opt<type_parameters> c:fn_parameters<pattern> d:opt<fn_return_type>
+    { node!("fn_signature", a, b, c, d) }
 
-fn_parameters<param_name> =
-    a:S<"("> b:csep<fn_parameter<param_name>> c:S<")">
+fn_parameters<param> =
+    a:S<"("> b:csep<param> c:S<")">
     { node!("fn_parameters", a, b, c) }
-
-fn_parameter<param_name> =
-    a:param_name b:type_name
-    { node!("fn_parameter", a, b) }
-
-fn_param_name<binding> =
-    a:binding b:S<":">
-    { node!("fn_param_name", a, b) }
 
 fn_return_type -> Elem<'input> =
     a:S<"->"> b:type_name
@@ -275,6 +267,9 @@ stmt_let -> Elem<'input> =
     { node!("stmt_let", a, b, c, d, e) }
 
 stmt_expr -> Elem<'input> =
+    a:expr_block_like b:opt<S<";">>
+    { node!("stmt_expr", a, b) }
+    /
     a:expr b:S<";">
     { node!("stmt_expr", a, b) }
 
@@ -365,11 +360,16 @@ type_late_lifetime -> Elem<'input> =
     { node!("type_late_lifetime", a, b, c, d) }
 
 type_fn_signature -> Elem<'input> =
-    a:fn_parameters<type_fn_param_name> b:opt<fn_return_type>
+    a:fn_parameters<type_fn_param> b:opt<fn_return_type>
     { node!("type_fn_signature", a, b) }
 
+type_fn_param -> Elem<'input> =
+    a:opt<type_fn_param_name> b:type_name
+    { node!("type_fn_param", a, b) }
+
 type_fn_param_name -> Elem<'input> =
-    opt<fn_param_name<Ident>>
+    a:Ident b:S<":">
+    { node!("type_fn_param_name", a, b) }
 
 type_never -> Elem<'input> =
     S<"!">
@@ -470,19 +470,22 @@ expr_field -> (&'static str, Vec<Elem<'input>>) =
 expr_prim -> Elem<'input> =
     literal /
     block /
-    expr_loop /
-    expr_for /
-    expr_while /
-    expr_if /
     expr_return /
     expr_break /
-    expr_match /
+    expr_block_like /
     expr_closure /
     expr_struct /
     expr_qual /
     expr_array /
     expr_tuple /
     expr_group
+
+expr_block_like -> Elem<'input> =
+    expr_loop /
+    expr_for /
+    expr_while /
+    expr_if /
+    expr_match
 
 expr_struct -> Elem<'input> =
     a:expr_path b:expr_struct_ctor?
@@ -614,8 +617,7 @@ expr_closure -> Elem<'input> =
     { node!("expr_closure", a, b, c, d.0, d.1) }
 
 closure_param -> Elem<'input> =
-    a:pattern b:opt<type_bound>
-    { node!("closure_param", a, b) }
+    pattern
 
 closure_tail -> (Elem<'input>, Elem<'input>) =
     a:opt<fn_return_type> b:block
