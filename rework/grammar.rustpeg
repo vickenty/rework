@@ -21,11 +21,11 @@ item_inner -> Elem<'input> =
     item_const
 
 item_use -> Elem<'input> =
-    a:Use b:S<[^;]+> c:S<";">
+    a:K<"use"> b:S<[^;]+> c:S<";">
     { node!("item_use", a, b, c) }
 
 item_struct -> Elem<'input> =
-    a:Struct b:Ident c:opt<type_parameters> d:struct_body
+    a:K<"struct"> b:Ident c:opt<type_parameters> d:struct_body
     { node!("item_struct", a, b, c, d) }
 
 struct_body -> Elem<'input> =
@@ -39,7 +39,7 @@ struct_body -> Elem<'input> =
     { node!("struct_body", a) }
 
 tuple_struct_body -> Elem<'input> =
-    a:S<"("> b:opt<Pub> c:csep<type_name> d:S<")">
+    a:S<"("> b:opt<K<"pub">> c:csep<type_name> d:S<")">
     { node!("tuple_struct_body", a, b, c, d) }
 
 named_struct_body -> Elem<'input> =
@@ -47,11 +47,11 @@ named_struct_body -> Elem<'input> =
     { node!("named_struct_body", a, b, c) }
 
 struct_field -> Elem<'input> =
-    a:opt<Pub> b:Ident c:S<":"> d:type_name
+    a:opt<K<"pub">> b:Ident c:S<":"> d:type_name
     { node!("struct_field", a, b, c, d) }
 
 item_enum -> Elem<'input> =
-    a:Enum b:Ident c:opt<type_parameters> d:enum_body
+    a:K<"enum"> b:Ident c:opt<type_parameters> d:enum_body
     { node!("item_enum", a, b, c, d) }
 
 enum_body -> Elem<'input> =
@@ -75,7 +75,7 @@ attribute_arguments -> Elem<'input> =
     { node!("attribute_arguments", a, b, c) }
 
 item_type -> Elem<'input> =
-    a:Type b:type_decl c:S<"="> d:type_name e:S<";">
+    a:K<"type"> b:type_decl c:S<"="> d:type_name e:S<";">
     { node!("item_type", a, b, c, d, e) }
 
 item_macro_rules -> Elem<'input> =
@@ -151,11 +151,11 @@ type_bound -> Elem<'input> =
     { node!("type_bound", a, b) }
 
 item_fn -> Elem<'input> =
-    a:opt<Unsafe> b:opt<fn_abi> c:Fn d:fn_signature e:block
+    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature e:block
     { node!("item_fn", a, b, c, d, e) }
 
 fn_abi -> Elem<'input> =
-    a:Extern b:opt<string>
+    a:K<"extern"> b:opt<string>
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
@@ -373,11 +373,11 @@ type_tuple -> Elem<'input> =
     { node!("type_tuple", a, b, c) }
 
 type_ref -> Elem<'input> =
-    a:S<"&"> b:opt<lifetime> c:opt<Mut> d:type_name
+    a:S<"&"> b:opt<lifetime> c:opt<K<"mut">> d:type_name
     { node!("type_ref", a, b, c, d) }
 
 type_ptr -> Elem<'input> =
-    a:S<"*"> b:(Mut / Const) c:type_name
+    a:S<"*"> b:(K<"mut"> / K<"const">) c:type_name
     { node!("type_ptr", a, b, c) }
 
 type_as -> Elem<'input> =
@@ -389,19 +389,19 @@ type_as_body -> Elem<'input> =
     { node!("type_as_body", a, b, c, d) }
 
 type_as_trait -> Elem<'input> =
-    a:As b:type_path
+    a:K<"as"> b:type_path
     { node!("type_as_trait", a, b) }
 
 type_impl -> Elem<'input> =
-    a:Impl b:type_name
+    a:K<"impl"> b:type_name
     { node!("type_impl", a, b) }
 
 type_fn -> Elem<'input> =
-    a:opt<type_late_lifetime> b:opt<Unsafe> c:opt<fn_abi> d:Fn e:type_fn_signature
+    a:opt<type_late_lifetime> b:opt<K<"unsafe">> c:opt<fn_abi> d:K<"fn"> e:type_fn_signature
     { node!("type_fn", a, b, c, d, e) }
 
 type_late_lifetime -> Elem<'input> =
-    a:For b:S<"<"> c:csep<lifetime> d:S<">">
+    a:K<"for"> b:S<"<"> c:csep<lifetime> d:S<">">
     { node!("type_late_lifetime", a, b, c, d) }
 
 type_fn_signature -> Elem<'input> =
@@ -426,6 +426,8 @@ type_group -> Elem<'input> =
 type_fn_trait -> Elem<'input> =
     a:opt<type_late_lifetime> b:FnTrait c:type_fn_signature
     { node!("type_fn_trait", a, b, c) }
+
+FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
 
 pub expr -> Elem<'input> =
     a:expr_inner
@@ -479,7 +481,7 @@ expr_cast0 -> Elem<'input> =
     suffix_expr<expr_prefix, expr_cast_tail>
 
 expr_cast_tail -> (&'static str, Vec<Elem<'input>>) =
-    a:As b:type_prim
+    a:K<"as"> b:type_prim
     { ("expr_as", vec![a, b]) }
 
 expr_prefix -> Elem<'input> =
@@ -489,7 +491,7 @@ expr_prefix -> Elem<'input> =
     expr_suffix
 
 refop -> Elem<'input> =
-    a:S<"&"> b:opt<Mut>
+    a:S<"&"> b:opt<K<"mut">>
     { node!("refop", a, b) }
 
 expr_suffix -> Elem<'input> =
@@ -599,11 +601,11 @@ expr_group -> Elem<'input> =
     { node!("expr_group", a, b, c) }
 
 expr_loop -> Elem<'input> =
-    a:Loop b:block
+    a:K<"loop"> b:block
     { node!("expr_loop", a, b) }
 
 expr_for -> Elem<'input> =
-    a:For b:pattern c:In d:expr_no_struct e:block
+    a:K<"for"> b:pattern c:K<"in"> d:expr_no_struct e:block
     { node!("expr_for", a, b, c, d, e) }
 
 expr_no_struct -> Elem<'input> =
@@ -611,7 +613,7 @@ expr_no_struct -> Elem<'input> =
     { a }
 
 expr_while -> Elem<'input> =
-    a:While b:condition c:block
+    a:K<"while"> b:condition c:block
     { node!("expr_while", a, b, c) }
 
 condition -> Elem<'input> =
@@ -619,15 +621,15 @@ condition -> Elem<'input> =
     expr_no_struct
 
 let_pattern -> Elem<'input> =
-    a:Let b:pattern c:S<"="> d:expr_no_struct
+    a:K<"let"> b:pattern c:S<"="> d:expr_no_struct
     { node!("let_pattern", a, b, c, d) }
 
 expr_if -> Elem<'input> =
-    a:If b:condition c:block d:opt<expr_if_else>
+    a:K<"if"> b:condition c:block d:opt<expr_if_else>
     { node!("expr_if", a, b, c, d) }
 
 expr_if_else -> Elem<'input> =
-    a:Else b:block
+    a:K<"else"> b:block
     { node!("expr_if_else", a, b) }
 
 expr_return -> Elem<'input> =
@@ -698,26 +700,6 @@ K<ex> = p:$(_) t:$(ex) ![a-zA-Z0-9_] {
     text(p, t)
 }
 
-Enum -> Elem<'input> = K<"enum">
-Pub -> Elem<'input> = K<"pub">
-Struct -> Elem<'input> = K<"struct">
-Type -> Elem<'input> = K<"type">
-Use -> Elem<'input> = K<"use">
-Fn -> Elem<'input> = K<"fn">
-Mut -> Elem<'input> = K<"mut">
-Const -> Elem<'input> = K<"const">
-Impl -> Elem<'input> = K<"impl">
-Unsafe -> Elem<'input> = K<"unsafe">
-Extern -> Elem<'input> = K<"extern">
-For -> Elem<'input> = K<"for">
-As -> Elem<'input> = K<"as">
-FnTrait -> Elem<'input> = K<"FnOnce"> / K<"FnMut"> / K<"FnBox"> / K<"Fn">
-While -> Elem<'input> = K<"while">
-If -> Elem<'input> = K<"if">
-Else -> Elem<'input> = K<"else">
-Let -> Elem<'input> = K<"let">
-Loop -> Elem<'input> =  K<"loop">
-In -> Elem<'input> = K<"in">
 
 // Identifiers
 Ident -> Elem<'input> =
