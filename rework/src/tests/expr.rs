@@ -44,6 +44,7 @@ parse! {
     expr id1 { x }
     expr id2 { std::usize::MAX }
     expr id3 { Vec::<u8>::len }
+    expr id4 { __x }
 
     expr range_full { .. }
     expr range_open1 { foo.. }
@@ -139,6 +140,8 @@ parse! {
     expr place_prec { x = y <- z } => { .. (* {:text = "="}) .. {:text = "<-"}}
     expr cast_plus { 1 as f32 + 2. } => { .. (* {:text = "+"}) .. ({:text = "as"}) }
     expr unop_cast { !0 as f32 } => { .. (* {:text = "as"}) .. ({:text = "!"}) }
+    expr id_num { _1 } => { .. ident * {:text="_1"} }
+    expr int_field { 4.e4 } => { .. expr_field .. {:text="e4"} }
 }
 
 #[test]

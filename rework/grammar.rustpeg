@@ -745,8 +745,8 @@ ident -> Elem<'input> =
     a:T<IdentLiteral>
     { node!("ident", a) }
 
-IdentLiteral -> &'input str =
-    $([a-zA-Z_] [a-zA-Z0-9_]*)
+IdentLiteral =
+    [a-zA-Z_] [a-zA-Z0-9_]*
 
 lifetime -> Elem<'input> =
     a:Label
@@ -760,10 +760,10 @@ Label -> Elem<'input> =
     T<"'" IdentLiteral>
 
 // Literals
-Hex = [0-9a-fA-F_]
-Oct = [0-7_]
-Bin = [01_]
-Dec = [0-9_]
+Hex = [0-9a-fA-F]
+Oct = [0-7]
+Bin = [01]
+Dec = [0-9]
 
 integer -> Elem<'input> =
     a:T<IntegerLiteral> b:opt<T_nows<IntegerSuffix>>
@@ -775,10 +775,11 @@ IntegerLiteral =
     IntegerBin /
     IntegerDec
 
-IntegerHex = "0x" Hex+
-IntegerOct = "0o" Oct+
-IntegerBin = "0b" Bin+
-IntegerDec = Dec+
+Int<digit> = digit (digit / "_")*
+IntegerHex = "0x" Int<Hex>
+IntegerOct = "0o" Int<Oct>
+IntegerBin = "0b" Int<Bin>
+IntegerDec = Int<Dec>
 
 IntegerSuffix =
     [ui]("8" / "16" / "32" / "64" / "128" / "size")
@@ -791,12 +792,10 @@ float -> Elem<'input> =
     { node!("floating", a, b) }
 
 FloatingLiteral =
-    Dec* "." Dec+ FloatingExp? /
-    Dec+ "." !"." FloatingExp? /
-    Dec+ FloatingExp
+    Int<Dec> ("." (Int<Dec> FloatingExp? / !("." / IdentLiteral)) / FloatingExp)
 
 FloatingExp =
-    [eE][+-]?Dec+
+    [eE][+-]?Int<Dec>
 
 FloatingSuffix = "f32" / "f64"
 
