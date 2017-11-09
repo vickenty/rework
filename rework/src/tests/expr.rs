@@ -75,6 +75,7 @@ parse! {
             None => return,
         }
     }
+    expr match_no_tail_comma { match foo { () => () } }
     expr if_match {
         if match *foo {
             Some(y) if Bar {}.is_empty() => y,
