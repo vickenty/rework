@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "peg"
 version = "0.5.4"
-source = "git+https://github.com/vickenty/rust-peg?branch=rule-args#dc6e5a3e07705656fd34e5a5367db5e2a90d92ad"
+source = "git+https://github.com/vickenty/rust-peg?branch=rule-args#0ce5fe01c2c1ea39a26a8144f1878cb4cec63fea"
 dependencies = [
  "codemap 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "codemap-diagnostic 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
