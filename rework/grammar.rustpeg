@@ -681,22 +681,26 @@ expr_break -> Elem<'input> =
     { node!("expr_break", a, b, c) }
 
 expr_match -> Elem<'input> =
-    a:K<"match"> b:expr<(false)> c:S<"{"> d:list<match_case> e:S<"}">
+    a:K<"match"> b:expr<(false)> c:S<"{"> d:match_case_list e:S<"}">
     { node!("expr_match", a, b, c, d, e) }
 
-match_case -> Elem<'input> =
-    a:sep_list1<pattern, S<"|">> b:opt<match_guard> c:S<"=>"> d:match_value
+match_case_list -> Elem<'input> =
+    a:match_case<S<",">>* b:match_case<empty>?
+    { node_vec("match_case_list", append(a, b)) }
+
+match_case<suffix> =
+    a:sep_list1<pattern, S<"|">> b:opt<match_guard> c:S<"=>"> d:match_value<suffix>
     { node!("match_case", a, b, c, d.0, d.1) }
 
 match_guard -> Elem<'input> =
     a:K<"if"> b:expr<(true)>
     { node!("match_guard", a, b) }
 
-match_value -> (Elem<'input>, Elem<'input>) =
-    a:block b:opt<S<",">>
+match_value<suffix> =
+    a:block b:opt<suffix>
     { (a, b) }
     /
-    a:expr<(true)> b:S<",">
+    a:expr<(true)> b:suffix
     { (a, b) }
 
 expr_closure -> Elem<'input> =
