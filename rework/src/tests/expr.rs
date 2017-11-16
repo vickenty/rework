@@ -76,6 +76,15 @@ parse! {
         }
     }
     expr match_no_tail_comma { match foo { () => () } }
+    expr match_block_arms {
+        match foo {
+            0 => { }
+            1 => if false { }
+            2 => match false { _ => () }
+            3 => for foo in bar { }
+            4 => loop { }
+        }
+    }
     expr if_match {
         if match *foo {
             Some(y) if Bar {}.is_empty() => y,

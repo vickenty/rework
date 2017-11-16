@@ -337,7 +337,7 @@ stmt_expr -> Elem<'input> =
     a:expr_block_like b:opt<S<";">>
     { node!("stmt_expr", a, b) }
     /
-    a:expr b:S<";">
+    !expr_block_start a:expr<(true)> b:S<";">
     { node!("stmt_expr", a, b) }
 
 pub type_name -> Elem<'input> =
@@ -542,6 +542,9 @@ expr_index -> (&'static str, Vec<Elem<'input>>) =
     { ("expr_index", vec![a, b, c]) }
 
 expr_call -> (&'static str, Vec<Elem<'input>>) =
+    a:S<"("> b:S<")">
+    { ("expr_call", vec![a, node!("empty"), b]) }
+    /
     a:S<"("> b:csep<expr_inner> c:S<")">
     { ("expr_call", vec![a, b, c]) }
 
@@ -554,24 +557,35 @@ expr_try -> (&'static str, Vec<Elem<'input>>) =
     { ("expr_try", vec![a]) }
 
 expr_prim -> Elem<'input> =
-    literal /
-    block /
-    expr_return /
-    expr_break /
     expr_block_like /
-    expr_closure /
-    expr_path /
-    expr_qual /
-    expr_array /
-    expr_tuple /
-    expr_group
+    expr_needs_sep
 
 expr_block_like -> Elem<'input> =
+    block /
     expr_loop /
     expr_for /
     expr_while /
     expr_if /
     expr_match
+
+// Tokens that can start expr_block_like
+expr_block_start -> Elem<'input> =
+    S<"{"> / K<"loop"> / K<"for"> / K<"while"> / K<"if"> / K<"match">
+
+expr_needs_sep -> Elem<'input> =
+    !expr_block_start
+    a:(
+        literal /
+        expr_return /
+        expr_break /
+        expr_closure /
+        expr_path /
+        expr_qual /
+        expr_array /
+        expr_tuple /
+        expr_group
+    )
+    { a }
 
 expr_path -> Elem<'input> =
     follow<path<S<"::">>, expr_path_tail>
@@ -697,10 +711,10 @@ match_guard -> Elem<'input> =
     { node!("match_guard", a, b) }
 
 match_value<suffix> =
-    a:block b:opt<suffix>
+    a:expr_block_like b:opt<suffix>
     { (a, b) }
     /
-    a:expr<(true)> b:suffix
+    !expr_block_start a:expr<(true)> b:suffix
     { (a, b) }
 
 expr_closure -> Elem<'input> =
