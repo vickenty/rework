@@ -18,7 +18,6 @@ parse! {
     pattern tuple_splat_mid { (a, b, .., c) }
     pattern tuple_splat_empty { (..) }
 
-
     pattern path { foo::Bar }
     pattern path_qual { <Type<Arg> as Trait<Arg>>::Foo::<Arg>::Bar }
 
