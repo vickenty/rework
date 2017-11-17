@@ -341,11 +341,11 @@ stmt_expr -> Elem<'input> =
     { node!("stmt_expr", a, b) }
 
 pub type_name -> Elem<'input> =
-    a:sep_list1<type_prim / lifetime, S<"+">>
+    a:sep_list1<lifetime / type_prim, S<"+">>
     { node!("type_name", a) }
 
 type_expr -> Elem<'input> =
-    a:type_prim b:S<"+"> c:(type_name / lifetime)
+    a:type_prim b:S<"+"> c:(lifetime / type_name)
     { node!("type_expr", a, b, c) }
 
 type_prim -> Elem<'input> =
@@ -383,7 +383,10 @@ type_array -> Elem<'input> =
     { node!("type_array", a, b, c, d, e) }
 
 type_tuple -> Elem<'input> =
-    a:S<"("> b:opt<csep_tuple<type_name>> c:S<")">
+    a:S<"("> b:S<")">
+    { node!("type_tuple", a, node!("empty"), b) }
+    /
+    a:S<"("> b:csep_tuple<type_name> c:S<")">
     { node!("type_tuple", a, b, c) }
 
 type_ref -> Elem<'input> =
@@ -463,6 +466,7 @@ where_clause -> Elem<'input> =
     a:type_name b:S<":"> c:type_name
     { node!("where_clause", a, b, c) }
 
+#[cache]
 pub expr -> Elem<'input> =
     a:expr_inner
     { node!("expr", a) }
@@ -478,12 +482,21 @@ expr_assign -> Elem<'input> = #infix<expr_assign_operand> {
 Assign = ("*" / "/" / "%" / "+" / "-" / "<<" / ">>" / "&" / "|" / "^")? "="
 
 expr_assign_operand -> Elem<'input> =
-    expr_range /
-    expr_binop
+    a:expr_range
+    { node!("binop", node!("empty"), a.0, a.1) }
+    /
+    lhs:expr_binop range:expr_range?
+    {
+        if let Some((op, rhs)) = range {
+            node!("binop", lhs, op, rhs)
+        } else {
+            lhs
+        }
+    }
 
-expr_range -> Elem<'input> =
-    a:opt<expr_binop> b:S<Range> c:opt<expr_binop>
-    { node!("binop", a, b, c) }
+expr_range -> (Elem<'input>, Elem<'input>) =
+    a:S<Range> b:opt<expr_binop>
+    { (a, b) }
 
 Range = "..." / "..=" / ".."
 
@@ -851,19 +864,16 @@ sep_list0<ex, sep> =
     { node_vec("list", append(xs, x)) }
 
 sep_list1<ex, sep> =
-    xs:sep_elem<ex, sep>+ x:sep_elem<ex, empty>?
-    { node_vec("list", append(xs, x)) }
-    /
-    x:sep_elem<ex, empty>
-    { node!("list", x) }
+    x:ex b:sep_elem<sep, ex>* c:sep?
+    { node_vec("list", append(prepend(x, b), c)) }
 
 // Separated list, tuple style - single element requires trailing separator
 sep_tuple<ex, sep> =
     xs:sep_elem<ex, sep>+ x:sep_elem<ex, empty>?
     { node_vec("list", append(xs, x)) }
 
-sep_elem<ex, sep> =
-    a:ex b:sep
+sep_elem<a, b> =
+    a:a b:b
     { node!("list_elem", a, b) }
 
 // Comma-separated lists
