@@ -562,8 +562,20 @@ expr_call -> (&'static str, Vec<Elem<'input>>) =
     { ("expr_call", vec![a, b, c]) }
 
 expr_field -> (&'static str, Vec<Elem<'input>>) =
-    a:S<"."> b:(T<IntegerDec> / ident)
+    a:S<"."> b:expr_field_name
     { ("expr_field", vec![a, b]) }
+
+expr_field_name -> Elem<'input> =
+    expr_tuple_field /
+    expr_named_field
+
+expr_tuple_field -> Elem<'input> =
+    a:T<IntegerDec>
+    { node!("expr_tuple_field", a) }
+
+expr_named_field -> Elem<'input> =
+    a:ident b:opt<type_arguments<S<"::">>>
+    { node!("expr_named_field", a, b) }
 
 expr_try -> (&'static str, Vec<Elem<'input>>) =
     a:S<"?">

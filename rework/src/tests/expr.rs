@@ -139,6 +139,7 @@ parse! {
     expr call4 { <Foo as Box<u8>>::bar(ook) }
     expr call5 { mem::size_of::<u8>() }
     expr call6 { ()() }
+    expr call_method_tfish { foo.bar::<Baz>() }
 
     expr try { foo? }
     expr try_chain { foo()?.bar[1]? + baz()? }
