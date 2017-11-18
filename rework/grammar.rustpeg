@@ -329,7 +329,7 @@ block_meta -> Elem<'input> =
     { node!("block_meta", a) }
 
 stmt -> Elem<'input> =
-    item_macro /
+    item /
     stmt_let /
     stmt_expr
 
