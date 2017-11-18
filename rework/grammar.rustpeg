@@ -76,12 +76,16 @@ meta<insert> =
      { node!("meta", a, b, c, d, e) }
 
 attribute -> Elem<'input> =
-    a:ident b:opt<attribute_arguments>
+    a:ident b:(attribute_arguments / attribute_value / empty)
     { node!("attribute", a, b) }
 
 attribute_arguments -> Elem<'input> =
     a:S<"("> b:csep<ident> c:S<")">
     { node!("attribute_arguments", a, b, c) }
+
+attribute_value -> Elem<'input> =
+    a:S<"="> b:literal
+    { node!("attribute_value", a, b) }
 
 item_type -> Elem<'input> =
     a:K<"type"> b:ident c:opt<type_parameters> d:opt<where_block> e:S<"="> f:type_name g:S<";">
