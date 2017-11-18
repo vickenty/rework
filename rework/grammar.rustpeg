@@ -2,9 +2,9 @@ use syntax::*;
 
 #![arguments(struct_literal: bool)]
 
-pub program -> Elem<'input> =
+pub module -> Elem<'input> =
     a:block_meta b:list<item> c:Ws
-    { node!("program", a, b, c) }
+    { node!("module", a, b, c) }
 
 pub item -> Elem<'input> =
     a:item_meta b:opt<K<"pub">> c:item_inner
@@ -23,7 +23,8 @@ item_inner -> Elem<'input> =
     item_macro_rules /
     item_impl /
     item_const /
-    item_macro
+    item_macro /
+    item_mod
 
 item_use -> Elem<'input> =
     a:K<"use"> b:S<[^;]+> c:S<";">
@@ -227,6 +228,18 @@ item_macro_tail -> Vec<Elem<'input>> =
     /
     a:S<"("> b:macro_arg c:S<")"> d:S<";">
     { vec!(a, b, c, d) }
+
+item_mod -> Elem<'input> =
+    a:K<"mod"> b:ident c:mod_body
+    { node!("mod", a, b, c) }
+
+mod_body -> Elem<'input> =
+    S<";"> /
+    mod_inline
+
+mod_inline -> Elem<'input> =
+    a:S<"{"> b:module c:S<"}">
+    { node!("mod_inline", a, b, c) }
 
 pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>

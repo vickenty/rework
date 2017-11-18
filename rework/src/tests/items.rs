@@ -8,4 +8,22 @@ parse! {
     item type_where {
         type T<U> where U: Clone = Box<U>;
     }
+    item mod_extern {
+        mod foo;
+    }
+    item mod_ext_attr {
+        #[path="../foo.rs"]
+        mod foo;
+    }
+    item mod_intern {
+        mod foo {
+            struct X;
+        }
+    }
+    item mod_int_attr {
+        #[inline]
+        mod foo {
+            struct X;
+        }
+    }
 }

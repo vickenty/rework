@@ -45,7 +45,7 @@ fn run(args: &Args) -> Result<(), Box<Error>> {
     let mut file = File::open(&args.arg_name)?;
     file.read_to_string(&mut buffer)?;
 
-    let mut root = parser::program(&buffer, true)?;
+    let mut root = parser::module(&buffer, true)?;
     let query = query_parser::query(&args.arg_query)?;
     query::find(&mut root, &query, &mut |e| if args.flag_verbose {
         println!("{:#?}", e);

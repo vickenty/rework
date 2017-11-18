@@ -21,6 +21,12 @@ parse! {
 
     item fn_attrib_outside { #[inline] fn foo() {} }
     item fn_attrib_inside { fn foo() { #![inline] } }
+    item fn_use {
+        fn foo() {
+            use bar;
+            use bar::baz;
+        }
+    }
 }
 
 parse! {

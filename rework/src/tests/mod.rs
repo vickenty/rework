@@ -67,7 +67,7 @@ macro_rules! assert_parses {
     )
 }
 
-mod program;
+mod module;
 mod type_name;
 mod expr;
 mod pat;

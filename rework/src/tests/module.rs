@@ -1,5 +1,5 @@
 parse! {
-    program simple1 {
+    module simple1 {
         #![feature(unstable)]
         #[macro_use]
         use std::io;
