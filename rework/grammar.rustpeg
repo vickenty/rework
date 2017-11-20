@@ -618,11 +618,12 @@ expr_block_like -> Elem<'input> =
     expr_for /
     expr_while /
     expr_if /
-    expr_match
+    expr_match /
+    expr_unsafe
 
 // Tokens that can start expr_block_like
 expr_block_start -> Elem<'input> =
-    S<"{"> / K<"loop"> / K<"for"> / K<"while"> / K<"if"> / K<"match">
+    S<"{"> / K<"loop"> / K<"for"> / K<"while"> / K<"if"> / K<"match"> / K<"unsafe">
 
 expr_needs_sep -> Elem<'input> =
     !expr_block_start
@@ -768,6 +769,10 @@ match_value<suffix> =
     /
     !expr_block_start a:expr<(true)> b:suffix
     { (a, b) }
+
+expr_unsafe -> Elem<'input> =
+    a:K<"unsafe"> b:block
+    { node!("expr_unsafe", a, b) }
 
 expr_closure -> Elem<'input> =
     a:S<"|"> b:csep<closure_param> c:S<"|"> d:closure_tail
