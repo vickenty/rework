@@ -143,6 +143,7 @@ parse! {
 
     expr try { foo? }
     expr try_chain { foo()?.bar[1]? + baz()? }
+    expr expr_unsafe { unsafe { 1 } }
 }
 
 parse! {

@@ -26,4 +26,29 @@ parse! {
             struct X;
         }
     }
+    item enum_discr {
+        enum E {
+            A = 1,
+            B = 2.5,
+            C = "C",
+        }
+    }
+    item impl_for_ref {
+        impl<'a, T> PartialEq<Interned<T>> for &'a Interned<T> {
+        }
+    }
+    item extern_crate {
+        #[macro_use]
+        extern crate serde_derive;
+    }
+    item cfg_not_any {
+        #[cfg(not(any(unix, windows)))]
+        struct X;
+    }
+    item extern_block {
+        extern "C" {
+            type Bar;
+            fn foo();
+        }
+    }
 }
