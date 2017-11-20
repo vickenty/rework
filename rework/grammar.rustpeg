@@ -88,8 +88,8 @@ attribute -> Elem<'input> =
     { node!("attribute", a, b) }
 
 attribute_arguments -> Elem<'input> =
-    a:S<"("> b:csep<ident> c:S<")">
-    { node!("attribute_arguments", a, b, c) }
+    a:S<"("> b:csep<ident> c:opt<attribute_arguments> d:S<")">
+    { node!("attribute_arguments", a, b, c, d) }
 
 attribute_value -> Elem<'input> =
     a:S<"="> b:literal
