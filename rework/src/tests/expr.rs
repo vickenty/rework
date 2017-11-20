@@ -144,6 +144,9 @@ parse! {
     expr try { foo? }
     expr try_chain { foo()?.bar[1]? + baz()? }
     expr expr_unsafe { unsafe { 1 } }
+    expr if_struct {
+            if let foo = bar(path::Baz { a: a, b }) { }
+    }
 }
 
 parse! {

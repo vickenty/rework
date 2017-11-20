@@ -559,11 +559,11 @@ where_clause -> Elem<'input> =
 
 #[cache]
 pub expr -> Elem<'input> =
-    a:expr_inner
+    a:expr_assign
     { node!("expr", a) }
 
 expr_inner -> Elem<'input> =
-    expr_assign
+    expr_assign<( true )>
 
 expr_assign -> Elem<'input> = #infix<expr_assign_operand> {
     #R  a b:S<Assign> c { node!("binop", a, b, c) }
@@ -768,7 +768,7 @@ expr_tuple -> Elem<'input> =
     { node!("expr_tuple", a, b, c) }
 
 expr_group -> Elem<'input> =
-    a:S<"("> b:expr_inner<( true )> c:S<")">
+    a:S<"("> b:expr_inner c:S<")">
     { node!("expr_group", a, b, c) }
 
 expr_loop -> Elem<'input> =
