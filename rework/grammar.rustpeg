@@ -24,7 +24,8 @@ item_inner -> Elem<'input> =
     item_impl /
     item_const /
     item_macro /
-    item_mod
+    item_mod /
+    item_extern
 
 item_use -> Elem<'input> =
     a:K<"use"> b:S<[^;]+> c:S<";">
@@ -245,6 +246,17 @@ mod_body -> Elem<'input> =
 mod_inline -> Elem<'input> =
     a:S<"{"> b:module c:S<"}">
     { node!("mod_inline", a, b, c) }
+
+item_extern -> Elem<'input> =
+    a:K<"extern"> b:extern_inner
+    { node!("item_extern", a, b) }
+
+extern_inner -> Elem<'input> =
+    extern_crate
+
+extern_crate -> Elem<'input> =
+    a:K<"crate"> b:ident c:S<";">
+    { node!("extern_crate", a, b, c) }
 
 pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>
