@@ -190,7 +190,7 @@ impl_type -> Elem<'input> =
     { node!("impl_type", a, b) }
 
 impl_for -> Elem<'input> =
-    a:K<"for"> b:type_path
+    a:K<"for"> b:type_name
     { node!("impl_for", a, b) }
 
 impl_block -> Elem<'input> =
