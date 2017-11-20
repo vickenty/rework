@@ -283,11 +283,20 @@ item_extern -> Elem<'input> =
     { node!("item_extern", a, b) }
 
 extern_inner -> Elem<'input> =
-    extern_crate
+    extern_crate /
+    extern_block
 
 extern_crate -> Elem<'input> =
     a:K<"crate"> b:ident c:S<";">
     { node!("extern_crate", a, b, c) }
+
+extern_block -> Elem<'input> =
+    a:literal b:S<"{"> c:list<extern_decl> d:S<"}">
+    { node!("extern_block", a, b, c, d) }
+
+extern_decl -> Elem<'input> =
+    type_item<empty> /
+    fn_item<S<";">>
 
 pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>
