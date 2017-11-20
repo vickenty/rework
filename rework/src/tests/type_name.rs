@@ -22,6 +22,7 @@ parse! {
     type_name type_fn2 { fn(x: u8) }
     type_name type_fn3 { for<'a> fn(x: &'a u8) }
     type_name type_fn4 { unsafe extern "C" fn() }
+    type_name type_fn5 { fn(&'a u32, &'b u32) }
     type_name trait_obj1 { &(Copy + Send + 'foo) }
     type_name trait_obj2 { Copy + 'foo + Send }
     type_name trait_obj3 { Copy + }

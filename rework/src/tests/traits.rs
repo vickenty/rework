@@ -11,4 +11,14 @@ parse! {
     item inherit {
         trait X: Debug {}
     }
+    item self_arg {
+        trait X {
+            fn foo(&'a self, a: u32) {}
+        }
+    }
+    item unnamed_param {
+        trait Y {
+            fn foo(&'a u32, &'a u32) {}
+        }
+    }
 }
