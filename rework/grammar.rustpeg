@@ -382,7 +382,8 @@ type_prim -> Elem<'input> =
     type_ptr /
     type_as /
     type_never /
-    type_group
+    type_group /
+    type_optout
 
 type_path -> Elem<'input> =
     a:opt<type_late_lifetime> b:path<empty>
@@ -461,6 +462,10 @@ type_never -> Elem<'input> =
 type_group -> Elem<'input> =
     a:S<"("> b:type_name c:S<")">
     { node!("type_group", a, b, c) }
+
+type_optout -> Elem<'input> =
+    a:S<"?"> b:type_path
+    { node!("type_optout", a, b) }
 
 type_fn_trait -> Elem<'input> =
     a:opt<type_late_lifetime> b:FnTrait c:type_fn_signature
