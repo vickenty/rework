@@ -1,7 +1,7 @@
 parse! {
     item basic {
         trait Foo<T> where T: Copy {
-            type Foo;
+            type Foo: Debug;
             type Bar = T;
             const FOO: u32;
             fn foo();

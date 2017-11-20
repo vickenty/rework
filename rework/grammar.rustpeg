@@ -275,8 +275,12 @@ trait_body -> Elem<'input> =
 
 trait_item -> Elem<'input> =
     const_item<opt<const_value>> /
-    type_item<opt<type_value>> /
+    trait_item_type /
     fn_item<block / S<";">>
+
+trait_item_type -> Elem<'input> =
+    a:K<"type"> b:ident c:opt<type_bound> d:opt<type_value> e:S<";">
+    { node!("trait_type", a, b, c, d, e) }
 
 item_extern -> Elem<'input> =
     a:K<"extern"> b:extern_inner
