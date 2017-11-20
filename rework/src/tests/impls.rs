@@ -12,5 +12,10 @@ parse! {
             unsafe extern "C" fn ook() {}
         }
     }
+    item self_arg {
+        impl X {
+            fn foo(&'a self) {}
+        }
+    }
 }
 

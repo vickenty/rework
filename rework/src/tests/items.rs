@@ -49,11 +49,15 @@ parse! {
         extern "C" {
             type Bar;
             fn foo();
+            static FOO: u8;
         }
     }
     item let_no_val {
         fn foo() {
             let x;
         }
+    }
+    item static_var {
+        static FOO: u8 = 1;
     }
 }
