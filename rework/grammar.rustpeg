@@ -25,6 +25,7 @@ item_inner -> Elem<'input> =
     item_const /
     item_macro /
     item_mod /
+    item_trait /
     item_extern
 
 item_use -> Elem<'input> =
@@ -95,8 +96,15 @@ attribute_value -> Elem<'input> =
     { node!("attribute_value", a, b) }
 
 item_type -> Elem<'input> =
-    a:K<"type"> b:ident c:opt<type_parameters> d:opt<where_block> e:S<"="> f:type_name g:S<";">
-    { node!("item_type", a, b, c, d, e, f, g) }
+    type_item<type_value>
+
+type_item<value> =
+    a:K<"type"> b:ident c:opt<type_parameters> d:opt<where_block> e:value f:S<";">
+    { node!("item_type", a, b, c, d, e, f) }
+
+type_value -> Elem<'input> =
+    a:S<"="> b:type_name
+    { node!("item_type_def", a, b) }
 
 item_macro_rules -> Elem<'input> =
     a:K<"macro_rules"> b:S<"!"> c:ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
@@ -164,7 +172,10 @@ macro_expr_var -> Elem<'input> =
     { node!("macro_expr_var", a) }
 
 item_fn -> Elem<'input> =
-    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature e:block
+    fn_item<block>
+
+fn_item<body> =
+    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature e:body
     { node!("item_fn", a, b, c, d, e) }
 
 fn_abi -> Elem<'input> =
@@ -217,8 +228,15 @@ impl_item_inner -> Elem<'input> =
     item_fn
 
 item_const -> Elem<'input> =
-    a:K<"const"> b:pattern c:S<"="> d:expr<(true)> e:S<";">
-    { node!("item_const", a, b, c, d, e) }
+    const_item<const_value>
+
+const_item<value> =
+    a:K<"const"> b:pattern c:value d:S<";">
+    { node!("item_const", a, b, c, d) }
+
+const_value -> Elem<'input> =
+    a:S<"="> b:expr<(true)>
+    { node!("const_value", a, b) }
 
 // Unlike rustc, accepts type arguments at module level
 item_macro -> Elem<'input> =
@@ -246,6 +264,19 @@ mod_body -> Elem<'input> =
 mod_inline -> Elem<'input> =
     a:S<"{"> b:module c:S<"}">
     { node!("mod_inline", a, b, c) }
+
+item_trait -> Elem<'input> =
+    a:K<"trait"> b:ident c:opt<type_parameters> d:opt<type_bound> e:opt<where_block> f:trait_body
+    { node!("item_trait", a, b, c, d, e, f) }
+
+trait_body -> Elem<'input> =
+    a:S<"{"> b:list<trait_item> c:S<"}">
+    { node!("trait_body", a, b, c) }
+
+trait_item -> Elem<'input> =
+    const_item<opt<const_value>> /
+    type_item<opt<type_value>> /
+    fn_item<block / S<";">>
 
 item_extern -> Elem<'input> =
     a:K<"extern"> b:extern_inner
