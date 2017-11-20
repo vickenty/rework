@@ -51,4 +51,9 @@ parse! {
             fn foo();
         }
     }
+    item let_no_val {
+        fn foo() {
+            let x;
+        }
+    }
 }

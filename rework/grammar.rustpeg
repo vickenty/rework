@@ -408,8 +408,12 @@ stmt -> Elem<'input> =
     stmt_expr
 
 stmt_let -> Elem<'input> =
-    a:S<"let"> b:pattern c:S<"="> d:expr e:S<";">
-    { node!("stmt_let", a, b, c, d, e) }
+    a:S<"let"> b:pattern c:opt<let_value> d:S<";">
+    { node!("stmt_let", a, b, c, d) }
+
+let_value -> Elem<'input> =
+    a:S<"="> b:expr
+    { node!("let_value", a, b) }
 
 stmt_expr -> Elem<'input> =
     a:expr_block_like b:opt<S<";">>
