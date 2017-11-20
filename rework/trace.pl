@@ -37,7 +37,7 @@ while(<>) {
     }
     else {
         my $top = pop @stack;
-        $stack[-1]{matches} += $top->{matches};
+        $stack[-1]{matches} += $top->{matches} if @stack;
 
         if (!defined $top) {
             die "empty stack";
