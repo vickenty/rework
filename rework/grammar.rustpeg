@@ -70,7 +70,12 @@ enum_variant -> Elem<'input> =
 
 enum_variant_body -> Elem<'input> =
     tuple_struct_body /
-    named_struct_body
+    named_struct_body /
+    enum_variant_value
+
+enum_variant_value -> Elem<'input> =
+    a:S<"="> b:literal
+    { node!("enum_variant_value", a, b) }
 
 meta<insert> =
      a:S<"#"> b:insert c:S<"["> d:attribute e:S<"]">
