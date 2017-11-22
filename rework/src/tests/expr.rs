@@ -147,6 +147,9 @@ parse! {
     expr if_struct {
             if let foo = bar(path::Baz { a: a, b }) { }
     }
+    expr struct_splat {
+        Foo { foo, ..default() }
+    }
 }
 
 parse! {

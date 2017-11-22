@@ -12,10 +12,14 @@ parse! {
             unsafe extern "C" fn ook() {}
         }
     }
-    item self_arg {
-        impl X {
-            fn foo(&'a self) {}
-        }
+    item self_arg { impl X { fn foo(self) {} } }
+    item self_ref { impl X { fn foo(&self) {} } }
+    item self_ref_lt { impl X { fn foo(&'a self) {} } }
+    item self_mut { impl X { fn foo(mut self) {} } }
+    item self_ref_mut { impl X { fn foo(&mut self) {} } }
+    item self_ref_mut_lt { impl X { fn foo(&'a mut self) {} } }
+    item path {
+        impl<T> foo::Foo for Bar<T> where T: Baz<[T]> {}
     }
 }
 

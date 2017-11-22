@@ -23,6 +23,7 @@ item_inner -> Elem<'input> =
     item_macro_rules /
     item_impl /
     item_const /
+    item_static /
     item_macro /
     item_mod /
     item_trait /
@@ -55,8 +56,8 @@ named_struct_body -> Elem<'input> =
     { node!("named_struct_body", a, b, c) }
 
 struct_field -> Elem<'input> =
-    a:opt<K<"pub">> b:ident c:S<":"> d:type_name
-    { node!("struct_field", a, b, c, d) }
+    a:item_meta b:opt<K<"pub">> c:ident d:S<":"> e:type_name
+    { node!("struct_field", a, b, c, d, e) }
 
 item_enum -> Elem<'input> =
     a:K<"enum"> b:ident c:opt<type_parameters> d:opt<where_block> e:enum_body
@@ -88,8 +89,8 @@ attribute -> Elem<'input> =
     { node!("attribute", a, b) }
 
 attribute_arguments -> Elem<'input> =
-    a:S<"("> b:csep<ident> c:opt<attribute_arguments> d:S<")">
-    { node!("attribute_arguments", a, b, c, d) }
+    a:S<"("> b:csep<attribute> c:S<")">
+    { node!("attribute_arguments", a, b, c) }
 
 attribute_value -> Elem<'input> =
     a:S<"="> b:literal
@@ -107,8 +108,12 @@ type_value -> Elem<'input> =
     { node!("item_type_def", a, b) }
 
 item_macro_rules -> Elem<'input> =
-    a:K<"macro_rules"> b:S<"!"> c:ident d:S<"{"> e:sep_list1<macro_rules_case, S<";">> f:S<"}">
-    { node!("item_macro_rules", a, b, c, d, e, f) }
+    a:K<"macro_rules"> b:S<"!"> c:ident d:macro_rules_body
+    { node!("item_macro_rules", a, b, c, d) }
+
+macro_rules_body -> Elem<'input> =
+    a:item_macro_tail<sep_list1<macro_rules_case, S<";">>>
+    { node_vec("macro_rules_body", a) }
 
 macro_rules_case -> Elem<'input> =
     a:macro_group<macro_match> b:S<"=>"> c:macro_group<macro_expr>
@@ -183,12 +188,19 @@ fn_abi -> Elem<'input> =
     { node!("fn_abi", a, b) }
 
 fn_signature -> Elem<'input> =
-    a:ident b:opt<type_parameters> c:fn_parameters<pattern> d:opt<fn_return_type> e:opt<where_block>
+    a:ident b:opt<type_parameters> c:fn_parameters<self_param / pattern> d:opt<fn_return_type> e:opt<where_block>
     { node!("fn_signature", a, b, c, d, e) }
 
 fn_parameters<param> =
     a:S<"("> b:csep<param> c:S<")">
     { node!("fn_parameters", a, b, c) }
+
+self_param -> Elem<'input> =
+    a:S<"&"> b:opt<lifetime> c:opt<K<"mut">> d:K<"self">
+    { node!("self_param", a, b, c, d) }
+    /
+    a:K<"self">
+    { node!("self_param", a) }
 
 fn_return_type -> Elem<'input> =
     a:S<"->"> b:type_name
@@ -231,26 +243,33 @@ item_const -> Elem<'input> =
     const_item<const_value>
 
 const_item<value> =
-    a:K<"const"> b:pattern c:value d:S<";">
-    { node!("item_const", a, b, c, d) }
+    a:K<"const"> b:ident c:type_bound d:value e:S<";">
+    { node!("item_const", a, b, c, d, e) }
 
 const_value -> Elem<'input> =
     a:S<"="> b:expr<(true)>
     { node!("const_value", a, b) }
 
+item_static -> Elem<'input> =
+    static_item<const_value>
+
+static_item<value> =
+    a:K<"static"> b:ident c:type_bound d:value e:S<";">
+    { node!("item_static", a, b, c, d, e) }
+
 // Unlike rustc, accepts type arguments at module level
 item_macro -> Elem<'input> =
-    a:path<S<"::">> b:S<"!"> c:item_macro_tail
+    a:path<S<"::">> b:S<"!"> c:item_macro_tail<macro_arg>
     { node_vec("item_macro", prepend(a, prepend(b, c))) }
 
-item_macro_tail -> Vec<Elem<'input>> =
-    a:S<"{"> b:macro_arg c:S<"}">
+item_macro_tail<inner> =
+    a:S<"{"> b:inner c:S<"}">
     { vec!(a, b, c, node!("empty")) }
     /
-    a:S<"["> b:macro_arg c:S<"]"> d:S<";">
+    a:S<"["> b:inner c:S<"]"> d:S<";">
     { vec!(a, b, c, d) }
     /
-    a:S<"("> b:macro_arg c:S<")"> d:S<";">
+    a:S<"("> b:inner c:S<")"> d:S<";">
     { vec!(a, b, c, d) }
 
 item_mod -> Elem<'input> =
@@ -303,8 +322,13 @@ extern_block -> Elem<'input> =
     { node!("extern_block", a, b, c, d) }
 
 extern_decl -> Elem<'input> =
+    a:opt<K<"pub">> b:extern_decl_inner
+    { node!("extern_decl", a, b) }
+
+extern_decl_inner -> Elem<'input> =
     type_item<empty> /
-    fn_item<S<";">>
+    fn_item<S<";">> /
+    static_item<empty>
 
 pub pattern -> Elem<'input> =
     a:pattern0 b:opt<type_bound>
@@ -712,8 +736,8 @@ expr_path_tail -> (&'static str, Vec<Elem<'input>>) =
     expr_macro
 
 expr_struct -> (&'static str, Vec<Elem<'input>>) =
-    &struct_ctor_allowed a:S<"{"> b:csep<struct_ctor_field> c:S<"}">
-    { ("expr_struct", vec![ a, b, c ]) }
+    &struct_ctor_allowed a:S<"{"> b:csep<struct_ctor_field> c:opt<struct_splat> d:S<"}">
+    { ("expr_struct", vec![ a, b, c, d ]) }
 
 struct_ctor_allowed =
     {?
@@ -731,6 +755,10 @@ struct_ctor_field -> Elem<'input> =
 struct_ctor_value -> Elem<'input> =
     a:S<":"> b:expr
     { node!("struct_ctor_value", a, b) }
+
+struct_splat -> Elem<'input> =
+    a:S<".."> b:expr_inner
+    { node!("struct_splat", a, b) }
 
 expr_macro -> (&'static str, Vec<Elem<'input>>) =
     a:S<"!"> b:macro_group<macro_arg>

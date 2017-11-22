@@ -24,6 +24,10 @@ parse! {
         macro_rules ! foo { () => {} }
     }
 
+    item paren {
+        macro_rules! foo(() => ());
+    }
+
     item call_as_block {
         fn foo() {
             block! { foo, bar }

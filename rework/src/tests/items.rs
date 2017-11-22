@@ -45,6 +45,10 @@ parse! {
         #[cfg(not(any(unix, windows)))]
         struct X;
     }
+    item attr_kwargs {
+        #[foo(foo=1, bar=2, baz)]
+        struct X;
+    }
     item extern_block {
         extern "C" {
             type Bar;
@@ -59,5 +63,11 @@ parse! {
     }
     item static_var {
         static FOO: u8 = 1;
+    }
+    item struct_field_meta {
+        struct X {
+            #[serde(ignore)]
+            pub x: u32,
+        }
     }
 }
