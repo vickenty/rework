@@ -76,8 +76,8 @@ tuple_struct_body -> Elem<'input> =
     { node!("tuple_struct_body", a, b, c) }
 
 tuple_struct_field -> Elem<'input> =
-    a:opt<K<"pub">> b:type_name
-    { node!("tuple_struct_field", a, b) }
+    a:item_meta b:opt<K<"pub">> c:type_name
+    { node!("tuple_struct_field", a, b, c) }
 
 named_struct_body -> Elem<'input> =
     a:S<"{"> b:opt<csep<struct_field>> c:S<"}">

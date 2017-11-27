@@ -79,4 +79,7 @@ parse! {
     item tuple_struct_pub {
         struct X(pub u32, pub u32);
     }
+    item tuple_field_meta {
+        struct X(#[ignore] pub u32);
+    }
 }
