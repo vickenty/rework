@@ -207,16 +207,16 @@ fn_return_type -> Elem<'input> =
     { node!("fn_return_type", a, b) }
 
 item_impl -> Elem<'input> =
-    a:impl_flags b:K<"impl"> c:opt<type_parameters> d:impl_type e:opt<impl_for> f:impl_block
-    { node!("item_impl", a, b, c, d, e, f) }
+    a:impl_flags b:K<"impl"> c:opt<type_parameters> d:impl_type e:impl_block
+    { node!("item_impl", a, b, c, d, e) }
 
 impl_flags -> Elem<'input> =
     a:opt<K<"default">> b:opt<K<"unsafe">>
     { node!("impl_flags", a, b) }
 
 impl_type -> Elem<'input> =
-    a:type_path b:opt<impl_for>
-    { node!("impl_type", a, b) }
+    a:type_path b:opt<impl_for> c:opt<where_block>
+    { node!("impl_type", a, b, c) }
 
 impl_for -> Elem<'input> =
     a:K<"for"> b:type_name
