@@ -21,4 +21,10 @@ parse! {
             fn foo(&'a u32, &'a u32) {}
         }
     }
+    item item_attr {
+        trait X {
+            #[inline]
+            fn foo();
+        }
+    }
 }

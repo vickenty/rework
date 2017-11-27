@@ -325,9 +325,11 @@ trait_body -> Elem<'input> =
     { node!("trait_body", a, b, c) }
 
 trait_item -> Elem<'input> =
-    const_item<opt<const_value>> /
-    trait_item_type /
-    trait_item_fn
+    a:item_meta b:(trait_item_const / trait_item_type / trait_item_fn)
+    { node!("trait_item", a, b) }
+
+trait_item_const -> Elem<'input> =
+    const_item<opt<const_value>>
 
 trait_item_type -> Elem<'input> =
     a:K<"type"> b:ident c:opt<type_bound> d:opt<type_value> e:S<";">
