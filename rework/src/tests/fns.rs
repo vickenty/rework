@@ -27,6 +27,12 @@ parse! {
             use bar::baz;
         }
     }
+    item fn_expr_meta {
+        fn foo() {
+            #[cfg(feature="return")]
+            return;
+        }
+    }
 }
 
 parse! {

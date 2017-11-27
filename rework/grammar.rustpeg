@@ -457,7 +457,7 @@ pattern_qual -> Elem<'input> =
     { node!("pattern_qual", a) }
 
 block -> Elem<'input> =
-    a:S<"{"> b:block_meta c:list<stmt> d:opt<expr> e:S<"}">
+    a:S<"{"> b:block_meta c:list<item / stmt> d:opt<expr> e:S<"}">
     { node!("block", a, b, c, d, e) }
 
 block_meta -> Elem<'input> =
@@ -465,9 +465,8 @@ block_meta -> Elem<'input> =
     { node!("block_meta", a) }
 
 stmt -> Elem<'input> =
-    item /
-    stmt_let /
-    stmt_expr
+    a:item_meta b:(stmt_let / stmt_expr)
+    { node!("stmt", a, b) }
 
 stmt_let -> Elem<'input> =
     a:S<"let"> b:pattern c:opt<let_value> d:S<";">
