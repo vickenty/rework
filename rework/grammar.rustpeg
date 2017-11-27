@@ -96,8 +96,8 @@ enum_body -> Elem<'input> =
     { node!("enum_body", a, b, c) }
 
 enum_variant -> Elem<'input> =
-    a:ident b:opt<enum_variant_body>
-    { node!("variant", a, b) }
+    a:item_meta b:ident c:opt<enum_variant_body>
+    { node!("variant", a, b, c) }
 
 enum_variant_body -> Elem<'input> =
     tuple_struct_body /

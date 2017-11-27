@@ -33,6 +33,12 @@ parse! {
             C = "C",
         }
     }
+    item enum_meta {
+        enum A {
+            #[ignore]
+            A,
+        }
+    }
     item impl_for_ref {
         impl<'a, T> PartialEq<Interned<T>> for &'a Interned<T> {
         }
