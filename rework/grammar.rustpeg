@@ -212,15 +212,15 @@ item_fn -> Elem<'input> =
     fn_item<block>
 
 fn_item<body> =
-    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature e:body
+    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature<self_param / pattern> e:body
     { node!("item_fn", a, b, c, d, e) }
 
 fn_abi -> Elem<'input> =
     a:K<"extern"> b:opt<string>
     { node!("fn_abi", a, b) }
 
-fn_signature -> Elem<'input> =
-    a:ident b:opt<type_parameters> c:fn_parameters<self_param / pattern> d:opt<fn_return_type> e:opt<where_block>
+fn_signature<param> =
+    a:ident b:opt<type_parameters> c:fn_parameters<param> d:opt<fn_return_type> e:opt<where_block>
     { node!("fn_signature", a, b, c, d, e) }
 
 fn_parameters<param> =
@@ -336,8 +336,8 @@ trait_item_type -> Elem<'input> =
     { node!("trait_type", a, b, c, d, e) }
 
 trait_item_fn -> Elem<'input> =
-    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:ident e:type_fn_signature f:(block / S<";">)
-    { node!("trait_fn", a, b, c, d, e, f) }
+    a:opt<K<"unsafe">> b:opt<fn_abi> c:K<"fn"> d:fn_signature<self_param / type_fn_param> e:(block / S<";">)
+    { node!("trait_fn", a, b, c, d, e) }
 
 item_extern -> Elem<'input> =
     a:K<"extern"> b:extern_inner

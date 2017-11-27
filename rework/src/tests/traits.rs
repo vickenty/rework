@@ -32,4 +32,9 @@ parse! {
             fn foo();
         }
     }
+    item fn_where {
+        trait X {
+            fn foo<T>() where T: Sized {}
+        }
+    }
 }
