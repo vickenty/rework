@@ -575,8 +575,8 @@ type_fn_param -> Elem<'input> =
     { node!("type_fn_param", a, b) }
 
 type_fn_param_name -> Elem<'input> =
-    a:ident b:S<":">
-    { node!("type_fn_param_name", a, b) }
+    a:opt<K<"mut">> b:ident c:S<":">
+    { node!("type_fn_param_name", a, b, c) }
 
 type_never -> Elem<'input> =
     S<"!">

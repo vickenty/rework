@@ -16,6 +16,11 @@ parse! {
             fn foo(&'a self, a: u32) {}
         }
     }
+    item mut_param {
+        trait X {
+            fn foo(&self, mut a: u32) {}
+        }
+    }
     item unnamed_param {
         trait Y {
             fn foo(&'a u32, &'a u32) {}
