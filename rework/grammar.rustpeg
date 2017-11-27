@@ -42,11 +42,11 @@ use_spec_tail -> Elem<'input> =
     { node!("node_spec_tail", a, b) }
 
 use_path -> Elem<'input> =
-    a:separated<ident, S<"::">, empty>
-    { node!("use_path", a) }
+    a:separated<ident, S<"::">, none>
+    { node_vec("use_path", a) }
 
 use_list -> Elem<'input> =
-    a:S<"{"> b:sep_list1<use_spec, S<",">> c:S<"}">
+    a:S<"{"> b:csep1<use_spec> c:S<"}">
     { node!("use_list", a, b, c) }
 
 use_as -> Elem<'input> =
@@ -136,8 +136,12 @@ item_macro_rules -> Elem<'input> =
     { node!("item_macro_rules", a, b, c, d) }
 
 macro_rules_body -> Elem<'input> =
-    a:item_macro_tail<sep_list1<macro_rules_case, S<";">>>
+    a:item_macro_tail<macro_rules_list>
     { node_vec("macro_rules_body", a) }
+
+macro_rules_list -> Elem<'input> =
+    a:separated<macro_rules_case, S<";">, S<";">?>
+    { node_vec("macro_rules_list", a) }
 
 macro_rules_case -> Elem<'input> =
     a:macro_group<macro_match> b:S<"=>"> c:macro_group<macro_expr>
@@ -412,7 +416,7 @@ pattern_at -> Elem<'input> =
     { node!("pattern_at", a, b) }
 
 pattern_tuple -> Elem<'input> =
-    a:S<"("> b:opt<csep_tuple<pattern / S<"..">> / S<"..">> c:S<")">
+    a:S<"("> b:opt<tuple<pattern / S<"..">> / S<"..">> c:S<")">
     { node!("pattern_tuple", a, b, c) }
 
 pattern_path -> Elem<'input> =
@@ -475,8 +479,8 @@ stmt_expr -> Elem<'input> =
     { node!("stmt_expr", a, b) }
 
 pub type_name -> Elem<'input> =
-    a:sep_list1<lifetime / type_prim, S<"+">>
-    { node!("type_name", a) }
+    a:separated<lifetime / type_prim, S<"+">, S<"+">?>
+    { node_vec("type_name", a) }
 
 type_expr -> Elem<'input> =
     a:type_prim b:S<"+"> c:(lifetime / type_name)
@@ -521,7 +525,7 @@ type_tuple -> Elem<'input> =
     a:S<"("> b:S<")">
     { node!("type_tuple", a, node!("empty"), b) }
     /
-    a:S<"("> b:csep_tuple<type_name> c:S<")">
+    a:S<"("> b:tuple<type_name> c:S<")">
     { node!("type_tuple", a, b, c) }
 
 type_ref -> Elem<'input> =
@@ -533,8 +537,8 @@ type_ptr -> Elem<'input> =
     { node!("type_ptr", a, b, c) }
 
 type_as -> Elem<'input> =
-    a:type_as_body b:path_elem<S<"::">, empty>+
-    { node_vec("type_as", prepend(a, b)) }
+    a:type_as_body b:path_suffix<empty>
+    { node!("type_as", a, b) }
 
 type_as_body -> Elem<'input> =
     a:S<"<"> b:type_name c:opt<type_as_trait> d:S<">">
@@ -792,13 +796,17 @@ path<args_prefix> =
     a:path_elem<opt<S<"::">>, args_prefix> b:path_elem<S<"::">, args_prefix>*
     { node_vec("path", prepend(a, b)) }
 
-path_elem<elem_prefix, args_prefix> =
-    a:elem_prefix b:ident c:opt<type_arguments<args_prefix>>
+path_suffix<args_prefix> =
+    a:path_elem<S<"::">, args_prefix>+
+    { node_vec("path", a) }
+
+path_elem<sep, args_prefix> =
+    a:sep b:ident c:opt<type_arguments<args_prefix>>
     { node!("path_elem", a, b, c) }
 
 expr_qual -> Elem<'input> =
-    a:type_as_body b:path_elem<S<"::">, S<"::">>+
-    { node_vec("expr_qual", prepend(a, b)) }
+    a:type_as_body b:path_suffix<S<"::">>
+    { node!("expr_qual", a, b) }
 
 expr_array -> Elem<'input> =
     a:S<"["> b:expr_array_body c:S<"]">
@@ -816,7 +824,7 @@ expr_array_copy -> Elem<'input> =
     { node!("array_copy", a, b, c) }
 
 expr_tuple -> Elem<'input> =
-    a:S<"("> b:opt<csep_tuple<expr_inner>> c:S<")">
+    a:S<"("> b:opt<tuple<expr_inner>> c:S<")">
     { node!("expr_tuple", a, b, c) }
 
 expr_group -> Elem<'input> =
@@ -872,8 +880,12 @@ match_case_list -> Elem<'input> =
     { node_vec("match_case_list", append(a, b)) }
 
 match_case<suffix> =
-    a:sep_list1<pattern, S<"|">> b:opt<match_guard> c:S<"=>"> d:match_value<suffix>
+    a:match_pat_list b:opt<match_guard> c:S<"=>"> d:match_value<suffix>
     { node!("match_case", a, b, c, d.0, d.1) }
+
+match_pat_list -> Elem<'input> =
+    a:separated<pattern, S<"|">, none>
+    { node_vec("match_pat_list", a) }
 
 match_guard -> Elem<'input> =
     a:K<"if"> b:expr<(true)>
@@ -905,6 +917,8 @@ closure_tail -> (Elem<'input>, Elem<'input>) =
     { (a, b) }
 
 empty -> Elem<'input> = { node!("empty") }
+
+none -> Option<Elem<'input>> = { None }
 
 // Whitespace
 _ = ([ \t\n] / "//" [^\n]* "\n")*
@@ -1019,31 +1033,29 @@ string_raw -> Elem<'input> =
     }
 
 // Separated lists
-sep_list0<ex, sep> =
-    sep_list1<ex, sep> / empty
-
-sep_list1<ex, sep> =
-    separated<ex, sep, opt<sep>>
-
 separated<ex, sep, last> =
-    a:sep_elem<empty, ex> b:sep_elem<sep, ex>* c:last
-    { node_vec("list", append(prepend(a, b), Some(c))) }
+    a:list_elem<empty, ex> b:list_elem<sep, ex>* c:last
+    { append(prepend(a, b), c) }
 
-// Separated list, tuple style - single element requires trailing separator
-sep_tuple<ex, sep> =
-    xs:sep_elem<ex, sep>+ x:sep_elem<ex, empty>?
-    { node_vec("list", append(xs, x)) }
-
-sep_elem<a, b> =
+list_elem<a, b> =
     a:a b:b
     { node!("list_elem", a, b) }
 
 // Comma-separated lists
-csep<ex> = sep_list0<ex, S<",">>
-csep_tuple<ex> = sep_tuple<ex, S<",">>
+csep1<ex> =
+    a:separated<ex, S<",">, S<",">?>
+    { node_vec("comma_list", a) }
 
-// Non-separated lists
-list<ex> = sep_list0<ex, empty>
+csep<ex> = opt<csep1<ex>>
+
+tuple<ex> =
+    xs:list_elem<ex, S<",">>+ x:list_elem<ex, empty>?
+    { node_vec("tuple", append(xs, x)) }
+
+// Simple sequence of elements
+list<ex> =
+    a:ex*
+    { node_vec("list", a) }
 
 // Optional elements
 opt<ex> =
