@@ -999,7 +999,7 @@ sep_list0<ex, sep> =
     sep_list1<ex, sep> / empty
 
 sep_list1<ex, sep> =
-    x:ex b:sep_elem<sep, ex>* c:sep?
+    x:sep_elem<empty, ex> b:sep_elem<sep, ex>* c:sep?
     { node_vec("list", append(prepend(x, b), c)) }
 
 // Separated list, tuple style - single element requires trailing separator
