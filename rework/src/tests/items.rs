@@ -70,4 +70,7 @@ parse! {
             pub x: u32,
         }
     }
+    item tuple_struct_pub {
+        struct X(pub u32, pub u32);
+    }
 }
