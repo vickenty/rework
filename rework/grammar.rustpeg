@@ -30,8 +30,32 @@ item_inner -> Elem<'input> =
     item_extern
 
 item_use -> Elem<'input> =
-    a:K<"use"> b:S<[^;]+> c:S<";">
-    { node!("item_use", a, b, c) }
+    a:K<"use"> b:opt<S<"::">> c:(use_spec / use_list / use_glob) d:S<";">
+    { node!("item_use", a, b, c, d) }
+
+use_spec -> Elem<'input> =
+    a:use_path b:opt<use_spec_tail / use_as>
+    { node!("use_spec", a, b) }
+
+use_spec_tail -> Elem<'input> =
+    a:S<"::"> b:(use_list / use_glob)
+    { node!("node_spec_tail", a, b) }
+
+use_path -> Elem<'input> =
+    a:separated<ident, S<"::">, empty>
+    { node!("use_path", a) }
+
+use_list -> Elem<'input> =
+    a:S<"{"> b:sep_list1<use_spec, S<",">> c:S<"}">
+    { node!("use_list", a, b, c) }
+
+use_as -> Elem<'input> =
+    a:K<"as"> b:ident
+    { node!("use_as", a, b) }
+
+use_glob -> Elem<'input> =
+    a:S<"*">
+    { node!("use_glob", a) }
 
 item_struct -> Elem<'input> =
     a:K<"struct"> b:ident c:opt<type_parameters> d:opt<where_block> e:struct_body
@@ -999,8 +1023,11 @@ sep_list0<ex, sep> =
     sep_list1<ex, sep> / empty
 
 sep_list1<ex, sep> =
-    x:sep_elem<empty, ex> b:sep_elem<sep, ex>* c:sep?
-    { node_vec("list", append(prepend(x, b), c)) }
+    separated<ex, sep, opt<sep>>
+
+separated<ex, sep, last> =
+    a:sep_elem<empty, ex> b:sep_elem<sep, ex>* c:last
+    { node_vec("list", append(prepend(a, b), Some(c))) }
 
 // Separated list, tuple style - single element requires trailing separator
 sep_tuple<ex, sep> =
